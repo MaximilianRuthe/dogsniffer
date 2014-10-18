@@ -972,16 +972,24 @@ box-shadow: inset 0px 1px 0 rgba(255,255,255,0.1), 0px 1px 0px #828282, 0px 2px 
 .recent-products h3 {margin-top:0px;}
 .mage-list .halflings {display:block;}
 
+/* 
 .app-ds-footer-home {background-image:url(images/skyline.png); background-repeat:no-repeat; background-position:bottom center;position:fixed; bottom:0; height:90px;width:100%;}
 .app-ds-home {
-background-color: #dd3333;
+background-color: #f1f1f1;
   *background-color: #bb3333; 
   background-image: -moz-linear-gradient(top, #ee3333, #bb3333);
   background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ee3333), to(#bb3333));
   background-image: -webkit-linear-gradient(top, #ee3333, #bb3333);
   background-image: -o-linear-gradient(top, #ee3333, #bb3333);
   background-image: linear-gradient(to bottom, #ee3333, #bb3333);
-  text-shadow:0 1px rgba(0, 0, 0, 0.8); color:#ffffff;
+  text-shadow:0 1px rgba(255, 255, 255, 0.8); 
+  color:#ffffff;
 }
-.app-ds-home  h3 {text-shadow:0 1px rgba(0, 0, 0, 0.8); color:#ffffff;}
+*/
+.app-ds-home {
+ text-shadow:0 1px rgba(255, 255, 255, 0.8); 
+ color:#222;
+ background: #f1f1f1 url('images/skyline-blue.png') center bottom fixed no-repeat;
+}
+.app-ds-home  h3 {text-shadow:0 1px rgba(255, 255, 255, 0.8); color:#222;}
 .app-ds-center {text-align:center;}
