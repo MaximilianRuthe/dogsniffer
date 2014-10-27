@@ -1,100 +1,100 @@
-<!DOCTYPE HTML>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Dog Friendly Businesses Near You</title>
-	<meta name="description" content="Find all Dog Related Businesses and Dog Friendly Companies or add your own Dog Friendly Business Today!"/>
-	<link rel='stylesheet' id='bootstrap-css'  href='css/bootstrap.min.css' type='text/css' media='all' />
-	<link rel='stylesheet' id='icons-css'  href='css/glyphicons.min.css' type='text/css' media='all' />
-	<link rel='stylesheet' id='gryphon-css'  href='style.css' type='text/css' media='all' />
-</head>
-<body class="app-ds-body app-ds-home">
-	<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2014 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />	
+		<link rel='stylesheet' id='bootstrap-css'  href='css/bootstrap.min.css' type='text/css' media='all' />
+		<link rel='stylesheet' id='icons-css'  href='css/glyphicons.min.css' type='text/css' media='all' />
+		<link rel='stylesheet' id='icons-css'  href='css/druid.css' type='text/css' media='all' />
+		<link rel="stylesheet" type="text/css" href="css/index.css" />	
+        <title>Dog Sniffer</title>
+		
+    </head>
+    <body>
+	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 		<div class="container-fluid">
     <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="#">Dog Sniffer</a>
-    </div>
-
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="#" id="show-listings">Places</a></li>
-        <li><a href="#" id="show-events">Events</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Show <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="#">List</a></li>
-            <li><a href="#">Map</a></li>
-            <li class="divider"></li>
-            <li><a href="#">Website</a></li>
-            <li class="divider"></li>
-            <li><a href="#">Other</a></li>
-          </ul>
-        </li>
-      </ul>
-      <form class="navbar-form navbar-left" role="search">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Sniff For" id="s">
-        </div>
-		<div class="form-group">
-          <input type="text" class="form-control" placeholder="Neighborhood, City, Zip" id="where">
-        </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-      </form>
-      <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Sign In <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="#">Action</a></li>
-            <li class="divider"></li>
-			<li><form role="form"><div class="form-group">
-					<label for="exampleInputEmail1">Email address</label>
-					<input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="#">Dog Sniffer</a>
+		</div>
+		<!-- Collect the nav links, forms, and other content for toggling -->
+		<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+			<ul class="nav navbar-nav">
+				<li class="active"><a href="#" id="show-listings">Places</a></li>
+				<li><a href="#" id="show-events">Events</a></li>
+			</ul>
+			<form class="navbar-form navbar-left" role="search">
+				<div class="form-group">
+					<input type="text" class="form-control" placeholder="Sniff For" id="s">
 				</div>
 				<div class="form-group">
-					<label for="exampleInputPassword1">Password</label>
-					<input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
-				</div></form></li>
-          </ul>
-					</li>
-					<li><a href="#">Register</a></li>
-				</ul>
-			</div><!-- /.navbar-collapse -->
+					<input type="text" class="form-control" placeholder="Neighborhood, City, Zip" id="where">
+				</div>
+				<button type="submit" class="btn btn-default">Submit</button>
+			</form>
+			<ul class="nav navbar-nav navbar-right">
+				<li><a href="#">List</a></li>
+				<li><a href="#">Map</a></li>
+			</ul>
+		</div><!-- /.navbar-collapse -->
 		</div><!-- /.container-fluid -->
-	</nav>
-<header id="top" class="header-full">
-	<div class="container-fluid app-ds-center">
-		<div class="row-fluid " >
-			<img src="images/logo.png" alt="Los Angeles">
-		</div>
 	</div>
-</header>
-<div id="wrapper" class="wrapper app-ds-home-wrapper">
-	<div id="primary" class="container-fluid ">            	
-		<section id="content" class="row-fluid" role="main">
-			<div class="span12 content app-ds-center" >
-				
-				<h3>Listings</h3>
-				<ul class="druid-listings">
-					
-				</ul>
+        <div class="app">
+            <h1>Dog Sniffer</h1>
+            <div id="deviceready" class="blink">
+                <p class="event listening">Connecting to Device</p>
+                <p class="event received">Device is Ready</p>
+            </div>
+        </div>
+		<div class="container-fluid padding-top">
+			<div id="listings" class="row" role="main">
+				<div class="col-xs-12 content" >
+					<ul class="druid-listings"></ul>
+				</div>
 			</div>
-		</section>
-	</div>
-</div>    
-<div class="clearfix app-ds-footer app-ds-footer-home " id="footer"></div>
-<script type="text/javascript" src="phonegap.js"></script>
-<script type="text/javascript" src="js/jquery.js"></script>
-<script type="text/javascript" src="js/druid.js"></script>
-<script type="text/javascript" src="js/bootstrap.min.js"></script>
-<script type="text/javascript">app.init();</script>
-</body>
+			<div id="map" class="row" role="main">
+				<div class="col-xs-12 content" >
+					<div class="map-canvas"></div>
+				</div>
+			</div>
+        </div>
+        <script type="text/javascript" src="cordova.js"></script>
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-TaPqRqrK616Gcwjh8K7bRqXosodUZYo&sensor=true"></script>
+		<script type='text/javascript' src='/js/gmaps.js'></script>
+		<script type="text/javascript" src="js/druid.js"></script>
+        <script type="text/javascript">
+            app.init();			
+        </script>
+    </body>
 </html>
