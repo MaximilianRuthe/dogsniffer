@@ -2,6 +2,7 @@ var app = {
 
 	init: function() {
 		this.bindEvents();
+		this.getPosts('listing');
 	},
 	bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
@@ -12,30 +13,6 @@ var app = {
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
-		/*
-		var bounds = [];
-		map = new GMaps({
-		div: '#map-all',
-			lat: -12.043333,
-			lng: -77.028333,
-			disableDefaultUI: true,
-			zoom: 14,		
-		}); 
-		GMaps.geocode({
-			address: 'Los Angeles, CA',
-			callback: function(results, status) {
-				if (status == 'OK') {
-					var latlng = results[0].geometry.location;
-					map.setCenter(latlng.lat(), latlng.lng());
-					map.addMarker({
-						lat: latlng.lat(),
-						lng: latlng.lng(),
-						//icon: "http://dogsniffer.com/wp-content/uploads/2013/03/favicon.png"
-					});
-				}
-			}
-		});	  
-		*/
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
@@ -49,6 +26,7 @@ var app = {
         console.log('Received Event: ' + id);
     },
 	getPosts: function(post_type,per_page,search_key) {
+		var bounds = [];
 		var rootURL = 'http://dogsniffer.com/la/wp-json';
 		post_type = post_type || "listing";
 		per_page = per_page || "10";
@@ -77,6 +55,27 @@ var app = {
 			}
 
 		});
+		map = new GMaps({
+		div: '#mage-map',
+			lat: -12.043333,
+			lng: -77.028333,
+			disableDefaultUI: true,
+			zoom: 14,		
+		}); 
+		GMaps.geocode({
+			address: 'Los Angeles, CA',
+			callback: function(results, status) {
+				if (status == 'OK') {
+					var latlng = results[0].geometry.location;
+					map.setCenter(latlng.lat(), latlng.lng());
+					map.addMarker({
+						lat: latlng.lat(),
+						lng: latlng.lng(),
+						//icon: "http://dogsniffer.com/wp-content/uploads/2013/03/favicon.png"
+					});
+				}
+			}
+		});	  
 
 	}	
 }  
