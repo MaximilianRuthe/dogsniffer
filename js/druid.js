@@ -2,7 +2,11 @@ var app = {
 
 	init: function() {
 		this.bindEvents();
-		this.getPosts('listing');
+		this.getPosts('listing');		
+		//$('#content').height(getRealContentHeight());
+		//$( "#listings" ).trigger( "updatelayout" );
+		var content = $.mobile.getScreenHeight() - $(".ui-header").outerHeight() - $(".ui-footer").outerHeight() - $(".ui-content").outerHeight() + $(".ui-content").height();
+		$(".ui-content").height(content);
 	},
 	bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
@@ -25,7 +29,7 @@ var app = {
 
         console.log('Received Event: ' + id);
     },
-	getPosts: function(post_type,per_page,search_key) {
+	getPosts: function(post_type,per_page,search_key) {		
 		var rootURL = 'http://dogsniffer.com/la/wp-json';
 		post_type = post_type || "listing";
 		per_page = per_page || "10";
@@ -33,6 +37,7 @@ var app = {
 		if (search_key !== '') {
 			search_key = "&filter[s]="+search_key;
 		}
+		/*
 		var bounds = [];
 		map = new GMaps({
 			div: '#mage-map',
@@ -40,7 +45,17 @@ var app = {
 			lng: -77.028333,
 			disableDefaultUI: true,
 			zoom: 15,		
+			width: 'auto',
+			height: '100%',
+			idle: function(){
+				map.refresh();
+			},
+			resize: function(){
+				var center = map.getCenter();
+				map.setCenter(center.lat(), center.lng());
+			}
 		}); 
+		*/
 		var barkback = rootURL + '/posts?type='+post_type+'&filter[posts_per_page]='+per_page+search_key;
 		$.ajax({
 			type: 'GET',
@@ -49,11 +64,12 @@ var app = {
 			success: function(data){
 				$.each(data, function(index, value) {
 					console.log(value);
-					$('ul.druid-listings').append('<li class="druid-list-item bubble row box item-'+post_type+'">' +
-			      	'<div class="col-xs-2 col-sm-2 col-md-2"><img src="'+value.featured_image.attachment_meta.sizes.thumbnail.url+'" class="thumbnail" /></div>' +
-			      	'<div class="col-xs-6 col-sm-6 col-md-6"><h3>'+value.title+'</h3>' +'<p>'+value.excerpt+'</p></div>' +
-					'<div class="col-xs-4 col-sm-4 col-md-4">'+value.street+'<br />'+value.city+', '+value.zip+'</div>' +
-					'</li>');					
+					$('ul.druid-listings').append('<li class="druid-list-item ui-li-has-alt ui-li-has-thumb item-'+post_type+'">' +
+			      	'<a href="#" class="ui-btn"><img src="'+value.featured_image.attachment_meta.sizes.thumbnail.url+'" class="thumbnail" />' +
+			      	'<h3>'+value.title+'</h3>' +'<p>'+value.excerpt+'</p>' +
+					'<p>'+value.street+'<br />'+value.city+', '+value.zip+'</p>' +
+					'</a><a href="#options" data-rel="popup" data-position-to="window" data-transition="pop" aria-haspopup="true" aria-owns="options" aria-expanded="false" class="ui-btn ui-btn-icon-notext ui-icon-gear" title="View"></a></li>');	
+					/*
 					GMaps.geocode({
 						address: value.street+', '+value.city+', '+value.zip,
 						callback: function(results, status) {
@@ -69,10 +85,11 @@ var app = {
 									}
 									//icon: "http://dogsniffer.com/wp-content/uploads/2013/03/favicon.png"
 								});
-								map.fitZoom();	
+								map.fitZoom();									
 							}
 						}
-					});					
+					});	
+					*/					
 			    });
 							
 			},
