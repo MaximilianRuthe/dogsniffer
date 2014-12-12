@@ -26,70 +26,222 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />	
-		<!--<link rel='stylesheet' id='bootstrap-css'  href='css/bootstrap.min.css' type='text/css' media='all' />-->
-		<link rel='stylesheet' id='icons-css'  href='css/glyphicons.min.css' type='text/css' media='all' />
 		<link rel='stylesheet' id='icons-css'  href='css/jquery.mobile-1.4.5.min.css' type='text/css' media='all' />
 		<link rel='stylesheet' id='icons-css'  href='css/druid.css' type='text/css' media='all' />
 		<link rel="stylesheet" type="text/css" href="css/index.css" />	
-        <title>Dog Sniffer</title>
-		<script type="text/javascript" src="cordova.js"></script>
+        <title>Dog Sniffer</title>		
 		<script type="text/javascript" src="js/jquery.js"></script>
-		<!--<script type="text/javascript" src="js/bootstrap.min.js"></script>-->
-		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>	
-		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=true"></script>
+		<script type="text/javascript" src="cordova.js"></script>
+		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 		<script type='text/javascript' src='js/gmaps.js'></script>
-		<script type="text/javascript" src="js/druid.js"></script>
+	<script>
+$( document ).on( "pagecreate", "#map-page", function() {
+	geocoder = new google.maps.Geocoder();
+	GMaps.geolocate({
+		success: function(position) {
+		var lat = position.coords.latitude;
+		var lng = position.coords.longitude;
+		var latlng = new google.maps.LatLng(lat, lng);
+		geocoder.geocode({'latLng': latlng}, function(results, status) {
+			if (status == google.maps.GeocoderStatus.OK) {
+				console.log(results);
+				if (results[1]) {
+					//alert(results[0].formatted_address)
+					for (var i=0; i<results[0].address_components.length; i++) {
+						for (var b=0;b<results[0].address_components[i].types.length;b++) {
+							if (results[0].address_components[i].types[b] == "postal_code") {
+								nearby = results[0].address_components[i];
+								DS.where = nearby.long_name;
+								$('#opt-zip').val(DS.where);
+							}
+							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
+								city = results[0].address_components[i];
+								city = city.long_name;
+								if ($.inArray(city, ['Los Angeles','San Francisco','Santa Barbara']) !== -1){
+									DS.city = city;
+									if (city == 'Santa Barbara'){
+										city = 'sb';
+									} else if (city == 'San Francisco') {
+										city = 'sf';
+									} else if (city == 'Orange County') {
+										city = 'oc';
+									} else {
+										city = 'la';
+									}
+									
+								}
+								break;
+							}
+						}
+					}					
+					DS.showMore();					
+				} else {
+					alert("No results found");
+				}				
+			} else {
+				alert("Geocoder failed due to: " + status);
+			}
+		});
+		},
+		error: function(error) {
+			alert('Geolocation failed: '+error.message);
+		},
+		not_supported: function() {
+			alert("Your browser does not support geolocation");
+		},
+		always: function() {
+	
+		}
+	});
+    $( "#show-more a" ).on( "click", function( e ){        
+        DS.showMore();
+        e.preventDefault();
+    });	
+	 $( "#opt-form" ).on( "click", function( e ){        
+        DS.refresh_list();
+		DS.showMore();
+        e.preventDefault();
+    });	
+	$('#s').on( "click", function( e ){    
+		var search_key = $('#s').val();	
+		DS.refresh_list();  
+        DS.showMore();
+		e.preventDefault();
+    });	
+	$('#opt-category').on( "change", function( e ){
+		DS.refresh_list();
+		DS.term = $('#opt-category').val();
+		if (DS.term !== 'all'){
+			DS.showMore(DS.term);
+		} else {
+			DS.term = '';
+			DS.showMore();
+		}
+	});
+});
+/**
+ * Geolocation configuration
+ */
+var DS = {
+	country: "USA",
+	city: "Los Angeles",
+    zip: "",
+	search:"",
+	term: "",
+    startIndex: 1,
+	post_type: 'listing',
+	refresh_list: function (){
+		$('.druid-list-item').remove();
+		DS.startIndex = 1;
+	},
+    showMore: function(category) {
+		$.mobile.loading( "show" );
+		per_page = 5;
+		var meta_key = $('#opt-zip').val();		
+		var city = $('#opt-city').val();
+		var search_key = $('#s').val();	
+		category = category || DS.term;
+		if (meta_key !== '') {
+			meta_key = "&filter[meta_key]=mage_zip&filter[meta_value]="+meta_key;
+		} 			
+		if (search_key !== '') {
+			search_key = "&filter[s]="+search_key;
+		}		
+		if (category !== '' && category !== undefined) {
+			category = "&filter[type]="+category;
+		}
+		rootURL = 'http://dogsniffer.com/'+city+'/wp-json';
+		filterDefault = '/posts?filter[post_status]=publish&filter[orderby]=date&filter[order]=desc&filter[posts_per_page]='+per_page+'&page='+DS.startIndex;
+		var types = '&type='+DS.post_type;
+		var barkback = rootURL + filterDefault +types+search_key+meta_key+category;
+		console.log(barkback);
+        $.ajax({
+			type: 'GET',
+			url: barkback,
+			dataType: 'json',
+            success: function( response ) {
+				var sniffed = '';
+				var sniffresults = $( ".druid-listings" );
+        		$.each(response, function(index, value) {
+					DS.startIndex = DS.startIndex + 1;
+					console.log(value);
+					var count = value.review_count;
+					var reviews = '';
+					if (count > 1){
+						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> reviews</div></div>';
+					} else if (count == 1){
+						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> review</div></div>';
+					}
+					var img = 'http://dogsniffer.com/la/wp-content/themes/Gryphon/mage/images/timthumb.php?src=http://dogsniffer.com//wp-content/themes/Gryphon/mage/images/dining.png&w=90&h=90&zc=1';
+					if (value.featured_image !== null && value.featured_image !== '' ){
+						thumb = value.featured_image.attachment_meta;
+						if (thumb.sizes.thumbnail !== undefined && thumb.sizes.thumbnail !== ''){
+							img = thumb.sizes.thumbnail.url;
+						}						
+					}
+					img = '<img src="'+img+'" class="thumbnail" />';
+					
+					
+					sniffed = sniffed + '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
+			      	'<a href="#" class="ui-btn">' + img +'<div class="phone">'+value.phone+'</div><h3>'+value.title+'</h3>' + reviews +
+					'<p>'+value.street+', '+value.city+', '+value.zip+'</p>' +
+					'</a></li>';
+				 });
+                sniffresults.find( "#show-more" ).before(sniffed);
+                sniffresults.listview( "refresh" );
+                $.mobile.loading( 'hide' );
+            },
+            timeout: 6000,  // Timeout after 6 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
+                $.mobile.loading( "hide" );
+            }
+        });
+    }
+};
+	</script>
     </head>
     <body>
-	<div data-role="page" style="width:100%; height:100%;">		
-		<div data-role="header">					
-			<h1 class="ui-title" role="heading" aria-level="1">Dog Sniffer</h1>
-			<a href="#" data-rel="back" class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-notext ui-shadow ui-corner-all" data-role="button" role="button">Back</a>
-			<div class="ui-input-text ui-body-inherit ui-corner-all ui-shadow-inset ui-input-has-clear">
-			<input type="text" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true"><a href="#" tabindex="-1" aria-hidden="true" class="ui-input-clear ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all ui-input-clear-hidden" title="Clear text">Clear text</a>
-			</div>
-			<div data-role="navbar">
-			<ul>
-				<li><a href="#" id="dining">Places</a></li>
-				<li><a href="#" id="activities">Events</a></li>
-				<li><a href="#" id="products">Products</a></li>
-			</ul>
-			</div><!-- /navbar -->				
-			
-		</div>
-		<div data-role="content">
-			<ul data-role="listview" data-inset="true" class="ui-listview-inset ui-corner-all ui-shadow">
-			<li><a href="#" class="ui-btn ui-btn-icon-right ui-icon-carat-r">Dining</a></li>
-			<li><a href="#" class="ui-btn ui-btn-icon-right ui-icon-carat-r">Activities</a></li>
-			<li><a href="#" class="ui-btn ui-btn-icon-right ui-icon-carat-r">More</a></li>
-			</ul>
-			<ul class="druid-listings" data-role="listview" data-split-icon="gear" data-inset="true" class="ui-corner-all ui-shadow"></ul>
-		</div>
-		<div data-role="footer" data-position="fixed" role="contentinfo">
-		<div data-role="navbar" class="ui-navbar" role="navigation">
-			<ul class="ui-grid-b">
-				<li class="ui-block-a"><a href="#" class="ui-link ui-btn ui-btn-active ui-state-persist" data-role="button" data-icon="home">Nearby</a></li>
-				<li class="ui-block-b"><a href="#" class="ui-link ui-btn" data-role="button" data-icon="search">Search</a></li>
-				<li class="ui-block-c"><a href="#" class="ui-link ui-btn" data-role="button" data-icon="gear">Settings</a></li>
-			</ul>
-		</div>
-		<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
-		</div>
-		<div data-role="panel" id="panel" data-position="left" data-position-fixed="false" data-display="reveal">
-			<form class="navbar-form navbar-left" role="search" data-ajax="false">
-	
-				<div class="form-group">
-					<input type="text" class="form-control" placeholder="Neighborhood, City, Zip" id="where" name="where" />
-				</div>
-				<button type="button" id="show-search" class="btn btn-default">Submit</button>
-			</form>
-		</div>
-		<div data-role="panel" id="list" data-position="right" data-position-fixed="false" data-display="reveal">
-			<div class="ui-panel-inner"></div>
-		</div>
+<div data-role="page" id="map-page" data-url="map-page">
+	<div data-role="header">
+		<h1>Dog Sniffer</h1>
+		<a href="#options" data-role="button" data-icon="gear" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
 	</div>
-        <script type="text/javascript">
-            app.init();			
-        </script>
+	<div role="main" class="ui-content">
+		<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" />
+   		<select name="opt-category" id="opt-category" data-native-menu="false">
+        		<option data-placeholder="true">Categories</option>
+				<option value="all">All</option>
+        		<option value="activities">Activities</option>
+        		<option value="dining">Dining</option>
+        		<option value="health-care">Health & Care</option>
+        		<option value="services">Services</option>
+				<option value="shopping">Shopping</option>
+				<option value="training">Training</option>
+				<option value="travel">Travel</option>
+    	</select>
+	<ul class="druid-listings" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
+		<li id="show-more"><a href=""><h1>Show more</h1></a></li>
+	</ul>
+	</div>
+	<div data-role="footer" data-position="fixed" role="contentinfo">		
+		<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+	</div>
+	<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
+		<h3>Search Options</h3>
+		<form class="navbar-form navbar-left" role="search" data-ajax="false">
+		<!--<fieldset data-role="controlgroup"><input type="checkbox" name="opt-types[]" value="listing" id="opt-listing" checked=""><label for="opt-listing">Places</label><input type="checkbox" name="opt-types[]" id="opt-event" value="event" checked=""><label for="opt-event">Events</label></fieldset>-->
+			<select name="opt-city" id="opt-city" data-native-menu="false">
+    			<option>Choose A City</option>
+   				<option value="la" selected="selected">Los Angeles</option>
+   				<option value="sb">Santa Barbara</option>
+    			<option value="oc">Orange County</option>
+			</select>
+			<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true">
+			<button type="button" id="opt-form" class="btn btn-default">Submit</button>
+		</form>
+		</div>
+    </div>
     </body>
 </html>
