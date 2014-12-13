@@ -30,7 +30,7 @@ ul li{list-style:none;}
 h1, h2, h3, h4, h5, h6 {text-shadow: 0 1px rgba(255, 255, 255, 1);}
 h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {color:inherit}
 h2 {line-height:30px;}
-h3 {line-height:1em;margin:0;}
+h3, .ui-listview>li h3 {line-height:1em;margin:0;}
 a img {outline:none;}
 small {font-size:85%;}
 hr { margin:10px 0; }
@@ -1014,6 +1014,8 @@ h2.ds-background{margin:0; border:none;}
 	font-family: Helvetica, Arial, sans-serif /*{global-font-family}*/;
 	text-decoration: none;
 }
-.phone {float:right;}
-.average-rating {float:right;}
+.phone {float:right;font-size:0.75em;}
+.average-rating {position: absolute;
+right: 10px;
+bottom: 15px;}
 .author-rating {font-size:11px;font-style:italic;margin-left:10px;}

@@ -58,7 +58,7 @@ $( document ).on( "pagecreate", "#map-page", function() {
 							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
 								city = results[0].address_components[i];
 								city = city.long_name;
-								if ($.inArray(city, ['Los Angeles','San Francisco','Santa Barbara']) !== -1){
+								if ($.inArray(city, ['Los Angeles','Orange County','Santa Barbara']) !== -1){
 									DS.city = city;
 									if (city == 'Santa Barbara'){
 										city = 'sb';
@@ -169,9 +169,11 @@ var DS = {
 					var count = value.review_count;
 					var reviews = '';
 					if (count > 1){
-						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> reviews</div></div>';
+						//reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> reviews</div></div>';
+						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div></div>';
 					} else if (count == 1){
-						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> review</div></div>';
+						//reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> review</div></div>';
+						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div></div>';
 					}
 					var img = 'http://dogsniffer.com/la/wp-content/themes/Gryphon/mage/images/timthumb.php?src=http://dogsniffer.com//wp-content/themes/Gryphon/mage/images/dining.png&w=90&h=90&zc=1';
 					if (value.featured_image !== null && value.featured_image !== '' ){
@@ -184,8 +186,8 @@ var DS = {
 					
 					
 					sniffed = sniffed + '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
-			      	'<a href="#" class="ui-btn">' + img +'<div class="phone">'+value.phone+'</div><h3>'+value.title+'</h3>' + reviews +
-					'<p>'+value.street+', '+value.city+', '+value.zip+'</p>' +
+			      	'<a href="#" class="ui-btn">' + img +'<h3>'+value.title+'</h3>' + reviews +
+					'<p>'+value.street+'<br />'+value.city+', '+value.zip+'<br />'+value.phone+'</p>' + 
 					'</a></li>';
 				 });
                 sniffresults.find( "#show-more" ).before(sniffed);
