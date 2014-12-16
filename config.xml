@@ -2,7 +2,7 @@
 <widget id="com.dogsniffer.app" version="2.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
     <name>DogSniffer</name>
     <description>
-        Discover Dog Friendly Restaurants, Events and other Businesses Near You.
+        Discover Dog Friendly Restaurants and other Businesses Near You.
     </description>
     <author email="support@dogsniffer.com" href="http://dogsniffer.com">
         Dog Sniffer Team
