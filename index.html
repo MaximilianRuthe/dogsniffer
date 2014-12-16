@@ -37,6 +37,8 @@
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
 $( document ).on( "pagecreate", "#map-page", function() {
+	var zone = $('#opt-city');
+	var supported = ['Los Angeles','Orange County','Santa Barbara'];
 	geocoder = new google.maps.Geocoder();
 	GMaps.geolocate({
 		success: function(position) {
@@ -49,33 +51,39 @@ $( document ).on( "pagecreate", "#map-page", function() {
 				if (results[1]) {
 					//alert(results[0].formatted_address)
 					for (var i=0; i<results[0].address_components.length; i++) {
-						for (var b=0;b<results[0].address_components[i].types.length;b++) {
-							if (results[0].address_components[i].types[b] == "postal_code") {
-								nearby = results[0].address_components[i];
-								DS.where = nearby.long_name;
-								$('#opt-zip').val(DS.where);
-							}
+						for (var b=0;b<results[0].address_components[i].types.length;b++) {							
 							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
 								city = results[0].address_components[i];
-								city = city.long_name;
-								if ($.inArray(city, ['Los Angeles','Orange County','Santa Barbara']) !== -1){
-									DS.city = city;
-									if (city == 'Santa Barbara'){
-										city = 'sb';
-									} else if (city == 'San Francisco') {
-										city = 'sf';
-									} else if (city == 'Orange County') {
-										city = 'oc';
-									} else {
-										city = 'la';
-									}
-									
-								}
+								DS.city = city.long_name;								
+							}
+							if ($.inArray(DS.city, supported) !== -1){
+								if (DS.city == 'Santa Barbara'){
+									DS.city = 'sb';
+								} else if (DS.city == 'San Francisco') {
+									DS.city = 'sf';
+								} else if (DS.city == 'Orange County') {
+									DS.city = 'oc';
+								} else {
+									DS.city = 'la';
+								}								
+								zone.val(DS.city).attr('selected', true).siblings('option').removeAttr('selected');
+								zone.selectmenu();
+								zone.selectmenu("refresh", true);
+							} else {
+								DS.city = 'la';
+								zone.val('la').attr('selected', true).siblings('option').removeAttr('selected');
+								zone.selectmenu();
+								zone.selectmenu("refresh", true);
 								break;
+							}								
+							if (results[0].address_components[i].types[b] == "postal_code") {
+								zip = results[0].address_components[i];
+								DS.zip = zip.long_name;
+								$('#opt-zip').val(DS.zip);								
 							}
 						}
 					}					
-					DS.showMore();					
+					DS.letDogsOut('',true);					
 				} else {
 					alert("No results found");
 				}				
@@ -95,28 +103,34 @@ $( document ).on( "pagecreate", "#map-page", function() {
 		}
 	});
     $( "#show-more a" ).on( "click", function( e ){        
-        DS.showMore();
+        DS.letDogsOut();
         e.preventDefault();
     });	
-	 $( "#opt-form" ).on( "click", function( e ){        
+ 	$( "#settings" ).on( "click", function( e ){        
+        $( "#poo" ).popup( "close" );  
+        e.preventDefault();
+    });	
+	 $( "#opt-form" ).on( "click", function( e ){ 
+		DS.city = $('#opt-city').val();
+		DS.zip = $('#opt-zip').val();	       
         DS.refresh_list();
-		DS.showMore();
+		DS.letDogsOut();
         e.preventDefault();
     });	
-	$('#s').on( "click", function( e ){    
-		var search_key = $('#s').val();	
+	$('#s').on( "change", function( e ){   
+		DS.search = $('#s').val();	 
 		DS.refresh_list();  
-        DS.showMore();
+        DS.letDogsOut();
 		e.preventDefault();
     });	
 	$('#opt-category').on( "change", function( e ){
 		DS.refresh_list();
 		DS.term = $('#opt-category').val();
 		if (DS.term !== 'all'){
-			DS.showMore(DS.term);
+			DS.letDogsOut(DS.term);
 		} else {
 			DS.term = '';
-			DS.showMore();
+			DS.letDogsOut();
 		}
 	});
 });
@@ -125,46 +139,91 @@ $( document ).on( "pagecreate", "#map-page", function() {
  */
 var DS = {
 	country: "USA",
-	city: "Los Angeles",
+	city: "",
     zip: "",
 	search:"",
 	term: "",
-    startIndex: 1,
+    offset: 1,
 	post_type: 'listing',
+	url: '',
+	urlCatch: '',
+	pp: 5,
 	refresh_list: function (){
 		$('.druid-list-item').remove();
-		DS.startIndex = 1;
+		DS.offset = 1;
 	},
-    showMore: function(category) {
-		$.mobile.loading( "show" );
-		per_page = 5;
-		var meta_key = $('#opt-zip').val();		
-		var city = $('#opt-city').val();
-		var search_key = $('#s').val();	
-		category = category || DS.term;
-		if (meta_key !== '') {
-			meta_key = "&filter[meta_key]=mage_zip&filter[meta_value]="+meta_key;
-		} 			
-		if (search_key !== '') {
-			search_key = "&filter[s]="+search_key;
-		}		
-		if (category !== '' && category !== undefined) {
-			category = "&filter[type]="+category;
+	pauseInputs: function (){
+		$('select').selectmenu('disable');
+		$('button, a.ui-btn').attr('disabled','disabled');
+		$('a.ui-btn').addClass('ui-disabled');
+		$('input[type="text"], input[type="search"]').attr('disabled','disabled');
+		$.mobile.loading( "show" );	
+	},
+	playInputs: function (){
+		$('select').selectmenu('enable');
+		$('button').removeAttr('disabled','disabled');
+		$('a.ui-btn').removeClass('ui-disabled');
+		$('input[type="text"], input[type="search"]').removeAttr('disabled','disabled');
+		$.mobile.loading( "hide" );
+	},
+	processURL: function(cat){			
+		var city = DS.city;
+		var zip = DS.zip;	
+		var s = DS.search;				
+		var s1 = s2 = s3 = s4 = '';
+		var s1 = '&type='+DS.post_type;		
+		if (s !== '') {
+			s2 = "&filter[s]="+s;
+		}						
+		if (cat !== '') {
+			s3 = "&filter[type]="+cat;
 		}
-		rootURL = 'http://dogsniffer.com/'+city+'/wp-json';
-		filterDefault = '/posts?filter[post_status]=publish&filter[orderby]=date&filter[order]=desc&filter[posts_per_page]='+per_page+'&page='+DS.startIndex;
-		var types = '&type='+DS.post_type;
-		var barkback = rootURL + filterDefault +types+search_key+meta_key+category;
-		console.log(barkback);
+		if (zip !== ''){
+			s4 = "&filter[meta_key]=mage_zip&filter[meta_value]="+zip;
+		}
+		var barkback = 'http://dogsniffer.com/'+city+'/wp-json/posts?filter[post_status]=publish&filter[orderby]=date&filter[order]=desc&filter[posts_per_page]='+DS.pp+'&page='+DS.offset;		
+		DS.urlCatch = barkback + s1 + s2;
+		DS.url = barkback + s1 + s2 + s3 + s4;
+	
+	},
+	letDogsOut: function (cat,first){
+		DS.pauseInputs();
+		cat = cat || DS.term;
+		first = first || false;
+		DS.processURL(cat);	
+		$.ajax({
+			type: 'GET',
+			url: DS.url,
+			dataType: 'json',
+            success: function(pup) {
+				if ($.isEmptyObject(pup)){
+					DS.zip = '';
+					DS.search = '';
+					DS.term = '';
+					if (!first){
+						$( "#poo" ).popup( "open" );  
+					}
+					DS.showMore(DS.urlCatch);
+				} else {
+					DS.showMore(DS.url);
+				}
+			},
+			timeout: 6000,  // Timeout after 6 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
+				$.mobile.loading( "hide" );
+            }
+		});
+	},
+    showMore: function(whistle) {			
         $.ajax({
 			type: 'GET',
-			url: barkback,
+			url: whistle,
 			dataType: 'json',
             success: function( response ) {
-				var sniffed = '';
-				var sniffresults = $( ".druid-listings" );
+				var sniffed = '';				
         		$.each(response, function(index, value) {
-					DS.startIndex = DS.startIndex + 1;
+					DS.offset = DS.offset + 1;
 					console.log(value);
 					var count = value.review_count;
 					var reviews = '';
@@ -184,20 +243,19 @@ var DS = {
 					}
 					img = '<img src="'+img+'" class="thumbnail" />';
 					
-					
+					//var tel = '<a href="tel:'+value.phone+'" class="ui-link-inherit">'+value.phone+'</a>';
 					sniffed = sniffed + '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
-			      	'<a href="#" class="ui-btn">' + img +'<h3>'+value.title+'</h3>' + reviews +
+			      	'<a href="tel:'+value.phone+'" class="ui-btn">' + img +'<h3>'+value.title+'</h3>' + reviews +
 					'<p>'+value.street+'<br />'+value.city+', '+value.zip+'<br />'+value.phone+'</p>' + 
 					'</a></li>';
 				 });
-                sniffresults.find( "#show-more" ).before(sniffed);
-                sniffresults.listview( "refresh" );
-                $.mobile.loading( 'hide' );
+                $( ".druid-listings" ).find( "#show-more" ).before(sniffed);
+                $( ".druid-listings" ).listview( "refresh" );
+                DS.playInputs();
             },
             timeout: 6000,  // Timeout after 6 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-                $.mobile.loading( "hide" );
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);                
             }
         });
     }
@@ -232,18 +290,12 @@ var DS = {
 	</div>
 	<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
 		<h3>Search Options</h3>
-		<form class="navbar-form navbar-left" role="search" data-ajax="false">
-		<!--<fieldset data-role="controlgroup"><input type="checkbox" name="opt-types[]" value="listing" id="opt-listing" checked=""><label for="opt-listing">Places</label><input type="checkbox" name="opt-types[]" id="opt-event" value="event" checked=""><label for="opt-event">Events</label></fieldset>-->
-			<select name="opt-city" id="opt-city" data-native-menu="false">
-    			<option>Choose A City</option>
-   				<option value="la" selected="selected">Los Angeles</option>
-   				<option value="sb">Santa Barbara</option>
-    			<option value="oc">Orange County</option>
-			</select>
-			<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true">
-			<button type="button" id="opt-form" class="btn btn-default">Submit</button>
-		</form>
-		</div>
+		<select name="opt-city" id="opt-city" data-native-menu="false"><option>Choose A City</option><option value="la">Los Angeles</option><option value="sb">Santa Barbara</option><option value="oc">Orange County</option></select>
+		<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true">
+		<button type="button" class="btn btn-default" id="opt-form">Submit</button>
+	</div>
+	<div data-role="popup" id="poo" style="max-width:400px;"><div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div><div role="main" class="ui-content"><h3 class="ui-title">We couldn't sniff out any listings for your search.</h3><p>You could try different category or search keyword, or even change your location settings.</p><a href="#options" id="settings" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-inline">Settings</a><a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Back</a></div>
+	</div>
     </div>
     </body>
 </html>

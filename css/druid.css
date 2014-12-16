@@ -838,18 +838,10 @@ width: 100%;
 display: inline-block;
 position: relative;
 background: url(../img/star-0.png) top left repeat-x;
-width: 80px;
+width: 70px;
 padding-top: 0;
 top: 0;
-height: 18px;
-box-shadow: inset 0px 1px 0 rgba(255,255,255,0.1), 0px 1px 0px #828282, 0px 2px 3px #aaa;
--moz-box-shadow: inset 0px 1px 0 rgba(255,255,255,0.1), 0px 1px 0px #828282, 0px 2px 3px #aaa;
--webkit-box-shadow: inset 0px 1px 0 rgba(255,255,255,0.1), 0px 1px 0px #828282, 0px 2px 3px #aaa;
--o-box-shadow: inset 0px 1px 0 rgba(255,255,255,0.1), 0px 1px 0px #828282, 0px 2px 3px #aaa;
-border-radius: 0;
--moz-border-radius: 0;
--webkit-border-radius: 0;
-background-color: #e6e6e6;
+height: 16px;
 }
 .author-rating > span {
 background: url(../img/star-1.png) top left repeat-x;
@@ -857,7 +849,7 @@ position: absolute;
 left: 0;
 top: 0;
 bottom: 0;
-height: 16px;}
+height: 14px;}
 .ui-header, .ds-background,  .ui-listview>li h2 {border: 1px solid #490100 /*{a-bar-border}*/;
 background: #ee3333 /*{a-bar-background-color}*/;
 color: #fff /*{a-bar-color}*/;
@@ -1017,5 +1009,5 @@ h2.ds-background{margin:0; border:none;}
 .phone {float:right;font-size:0.75em;}
 .average-rating {position: absolute;
 right: 10px;
-bottom: 15px;}
+bottom: 10px;}
 .author-rating {font-size:11px;font-style:italic;margin-left:10px;}
