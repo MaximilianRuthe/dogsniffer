@@ -51,7 +51,7 @@ $( document ).on( "pagecreate", "#map-page", function() {
 				if (results[1]) {
 					//alert(results[0].formatted_address)
 					for (var i=0; i<results[0].address_components.length; i++) {
-						for (var b=0;b<results[0].address_components[i].types.length;b++) {							
+						for (var b=0;b<results[0].address_components[i].types.length;b++) {		
 							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
 								city = results[0].address_components[i];
 								DS.city = city.long_name;								
@@ -74,12 +74,12 @@ $( document ).on( "pagecreate", "#map-page", function() {
 								zone.val('la').attr('selected', true).siblings('option').removeAttr('selected');
 								zone.selectmenu();
 								zone.selectmenu("refresh", true);
-								break;
 							}								
 							if (results[0].address_components[i].types[b] == "postal_code") {
 								zip = results[0].address_components[i];
 								DS.zip = zip.long_name;
-								$('#opt-zip').val(DS.zip);								
+								$('#opt-zip').val(DS.zip);	
+								break;
 							}
 						}
 					}					
