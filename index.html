@@ -37,6 +37,10 @@
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
 $( document ).on( "pagecreate", "#map-page", function() {
+	if (navigator.userAgent.match(/(iPad|iPhone);.*CPU.*OS 7_\d/i)) {
+        $("body").addClass("ios7");
+        $('body').append('<div id="ios7statusbar"/>');
+    }
 	var zone = $('#opt-city');
 	var supported = ['Los Angeles','Orange County','Santa Barbara'];
 	geocoder = new google.maps.Geocoder();
