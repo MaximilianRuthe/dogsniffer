@@ -36,72 +36,11 @@
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
-$( document ).on( "pagecreate", "#map-page", function() {
-	var zone = $('#opt-city');
-	var supported = ['Los Angeles','Orange County','Santa Barbara'];
-	geocoder = new google.maps.Geocoder();
-	GMaps.geolocate({
-		success: function(position) {
-		var lat = position.coords.latitude;
-		var lng = position.coords.longitude;
-		var latlng = new google.maps.LatLng(lat, lng);
-		geocoder.geocode({'latLng': latlng}, function(results, status) {
-			if (status == google.maps.GeocoderStatus.OK) {
-				console.log(results);
-				if (results[1]) {
-					//alert(results[0].formatted_address)
-					for (var i=0; i<results[0].address_components.length; i++) {
-						for (var b=0;b<results[0].address_components[i].types.length;b++) {		
-							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
-								city = results[0].address_components[i];
-								DS.city = city.long_name;								
-							}
-							if ($.inArray(DS.city, supported) !== -1){
-								if (DS.city == 'Santa Barbara'){
-									DS.city = 'sb';
-								} else if (DS.city == 'San Francisco') {
-									DS.city = 'sf';
-								} else if (DS.city == 'Orange County') {
-									DS.city = 'oc';
-								} else {
-									DS.city = 'la';
-								}								
-								zone.val(DS.city).attr('selected', true).siblings('option').removeAttr('selected');
-								zone.selectmenu();
-								zone.selectmenu("refresh", true);
-							} else {
-								DS.city = 'la';
-								zone.val('la').attr('selected', true).siblings('option').removeAttr('selected');
-								zone.selectmenu();
-								zone.selectmenu("refresh", true);
-							}								
-							if (results[0].address_components[i].types[b] == "postal_code") {
-								zip = results[0].address_components[i];
-								DS.zip = zip.long_name;
-								$('#opt-zip').val(DS.zip);	
-								break;
-							}
-						}
-					}					
-					DS.letDogsOut('',true);					
-				} else {
-					alert("No results found");
-				}				
-			} else {
-				alert("Geocoder failed due to: " + status);
-			}
-		});
-		},
-		error: function(error) {
-			alert('Geolocation failed: '+error.message);
-		},
-		not_supported: function() {
-			alert("Your browser does not support geolocation");
-		},
-		always: function() {
-	
-		}
-	});
+ $(document).delegate('#single', 'pageshow', function (event, ui) {
+    var singleID = DS.sniffListing('id');
+	DS.singleView(singleID);
+});  
+$( document ).on( "pagecreate", "#home", function() {
     $( "#show-more a" ).on( "click", function( e ){        
         DS.letDogsOut();
         e.preventDefault();
@@ -134,9 +73,6 @@ $( document ).on( "pagecreate", "#map-page", function() {
 		}
 	});
 });
-/**
- * Geolocation configuration
- */
 var DS = {
 	country: "USA",
 	city: "",
@@ -147,17 +83,146 @@ var DS = {
 	post_type: 'listing',
 	url: '',
 	urlCatch: '',
-	pp: 5,
+	pp: 5,	
+	origin: [],
+	nearby: false,
+	singleView: function(singleID){
+		var city = DS.city;
+		var barkback = 'http://dogsniffer.com/'+city+'/wp-json/posts/'+singleID;	
+		var mapStatic;
+		$.ajax({
+		type: 'GET',
+		url: barkback,
+		dataType: 'json',
+      	success: function( value ) {		
+			console.log(value);
+			var count = value.review_count;
+			var reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div>';
+			if (count > 1){
+				reviews = reviews + ' <div class="review-count"><span itemprop="reviewCount">'+count+'</span> reviews</div>';
+			} else if (count == 1){
+				reviews = reviews + '<div class="review-count"><span itemprop="reviewCount">'+count+'</span> review</div>';
+			}
+			reviews = reviews + '</div>';
+			var img = 'http://dogsniffer.com/la/wp-content/themes/Gryphon/mage/images/timthumb.php?src=http://dogsniffer.com//wp-content/themes/Gryphon/mage/images/dining.png&w=90&h=90&zc=1';
+			//if (value.featured_image !== null && value.featured_image !== '' ){
+			//	thumb = value.featured_image.attachment_meta;
+				//if (thumb.sizes.thumbnail !== undefined && thumb.sizes.thumbnail !== ''){
+			//		img = thumb.sizes.thumbnail.url;
+			//	}						
+			//}
+			img = '<img src="'+img+'" class="thumbnail" />';
+		
+			GMaps.geocode({
+			address: value.street+', '+value.city+', '+value.zip,
+			callback: function(results, status) {
+				if (status == 'OK') {
+					var latlng = results[0].geometry.location;
+					url = GMaps.staticMapURL({
+						size: [800, 180],
+						lat: latlng.lat(),
+						lng: latlng.lng(),
+						markers: [{lat: latlng.lat(),lng: latlng.lng()}]
+					});
+					//DS.nearby = true;
+					//DS.origin = [34.0544902,-118.4413104];
+					
+					if (DS.nearby){
+					map = new GMaps({
+						div: '#mage-map',
+						lat: latlng.lat(),
+						lng: latlng.lat(),
+						disableDefaultUI: true,
+						zoom: 12,
+						height: '100%',
+						width: '100%',
+						idle: function(){
+							map.refresh();
+						},
+						resize: function(){
+							var center = map.getCenter();
+							map.setCenter(center.lat(), center.lng());
+						}
+					});
+					
+					map.addMarker({
+						lat: DS.origin[0],
+						lng: DS.origin[1]
+					});
+					map.addMarker({
+						lat: latlng.lat(),
+						lng: latlng.lng(),
+					});
+					map.fitZoom();		
+					map.drawRoute({
+						origin: DS.origin,
+						destination: [latlng.lat(), latlng.lng()],
+                        travelMode: 'driving',
+                        strokeColor: '#131540',
+                        strokeOpacity: 0.6,
+                        strokeWeight: 6
+					});
+					
+					var distance = 0;
+					var time = 0;
+					map.getRoutes({
+						origin: DS.origin,
+						destination: [latlng.lat(), latlng.lng()],
+						callback: function (e) {
+						console.log(e);
+						
+                            for (var i=0; i<e[0].legs.length; i++) {
+								time += e[0].legs[i].duration.value;
+								distance += e[0].legs[i].distance.value;
+                            }
+							time = Math.round(time / 60);
+							distance = (Math.ceil( distance * 0.62137 ) / 1000).toFixed(1);
+							$(".dist").append('<div class="dist-time">'+time+' min</div>'+distance+' miles');
+                        }
+					});
+					}
+					$(".mapbox").css('background-image','url('+url+')');
+					$(".map-add").append(value.street+'<br />'+value.city+', '+value.zip);
+					
+					
+				}
+			}
+			});	
+			var sniffed = '<h2>'+value.title+'</h2>'+reviews;			
+			
+			$(".entry-header").append(sniffed);	
+			
+			$("#listing-about").append('<p>'+value.content+'</p>');
+			$("#tel a").attr("href", 'tel:'+value.phone);
+			$("#tel a").append(' '+value.phone);
+			       
+            },
+            timeout: 6000,  // Timeout after 6 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);                
+            }
+        });
+		
+	},
+	sniffListing: function (name){
+		var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+		return match && decodeURIComponent(match[1].replace(/\+/g, ' '));	
+	},
 	refresh_list: function (){
 		$('.druid-list-item').remove();
-		DS.offset = 1;
+		this.offset = 1;
 	},
 	pauseInputs: function (){
 		$('select').selectmenu('disable');
 		$('button, a.ui-btn').attr('disabled','disabled');
 		$('a.ui-btn').addClass('ui-disabled');
 		$('input[type="text"], input[type="search"]').attr('disabled','disabled');
-		$.mobile.loading( "show" );	
+		$.mobile.loading( "show", {
+			text: 'Sniffing Out Locations Near You',
+			textVisible: true,
+			theme: 'z',
+			html: ""
+		});	
 	},
 	playInputs: function (){
 		$('select').selectmenu('enable');
@@ -228,10 +293,8 @@ var DS = {
 					var count = value.review_count;
 					var reviews = '';
 					if (count > 1){
-						//reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> reviews</div></div>';
 						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div></div>';
 					} else if (count == 1){
-						//reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div> <div class="review-count"><span itemprop="reviewCount">'+count+'</span> review</div></div>';
 						reviews = '<div class="average-rating"><div class="author-rating"><span style="width:'+value.rating+'%;"></span></div></div>';
 					}
 					var img = 'http://dogsniffer.com/la/wp-content/themes/Gryphon/mage/images/timthumb.php?src=http://dogsniffer.com//wp-content/themes/Gryphon/mage/images/dining.png&w=90&h=90&zc=1';
@@ -242,12 +305,14 @@ var DS = {
 						}						
 					}
 					img = '<img src="'+img+'" class="thumbnail" />';
-					
-					//var tel = '<a href="tel:'+value.phone+'" class="ui-link-inherit">'+value.phone+'</a>';
-					sniffed = sniffed + '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
-			      	'<a href="tel:'+value.phone+'" class="ui-btn">' + img +'<h3>'+value.title+'</h3>' + reviews +
-					'<p>'+value.street+'<br />'+value.city+', '+value.zip+'<br />'+value.phone+'</p>' + 
-					'</a></li>';
+					sniffed = sniffed + '<li class="druid-list-item ui-li-has-alt ui-li-has-thumb item-'+value.type+'">' +
+			      	'<a href="single.html?id='+value.ID+'" class="ui-btn">' + img +'<h2>'+value.title+'</h2>' + reviews +
+					//'<p>'+value.street+'<br />'+value.city+', '+value.zip+'<br />'+value.phone+'</p>' + 
+					'<p><strong>'+value.street+', '+value.city+'</strong></p>' + 
+					'<p>'+value.terms.type[0].name+'</p>' + 
+					'</a>'+
+					//'<a href="tel:'+value.phone+'" class="ui-btn ui-btn-icon-notext ui-icon-gear" title="View"></a>'+
+					'</li>';
 				 });
                 $( ".druid-listings" ).find( "#show-more" ).before(sniffed);
                 $( ".druid-listings" ).listview( "refresh" );
@@ -258,13 +323,86 @@ var DS = {
                 console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);                
             }
         });
-    }
+    },
+	init: function() {
+		this.bindEvents();
+	},
+	bindEvents: function() {
+		if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
+			document.addEventListener("deviceready", this.onDeviceReady, false);
+		} else {
+			this.onDeviceReady();
+		}
+    },
+	onDeviceReady: function() {
+		navigator.geolocation.getCurrentPosition(this.onSuccess, this.onError);     
+	},
+	onError: function (error) { 
+		
+		alert('Geolocation failed: '+error.message);
+	},
+	onSuccess: function(position) {
+	var zone = $('#opt-city');
+	var supported = ['Los Angeles','Orange County','Santa Barbara'];
+	var lat = position.coords.latitude;
+	var lng = position.coords.longitude;
+	var latlng = new google.maps.LatLng(lat, lng);
+	DS.origin = [latlng.lat(), latlng.lng()];
+	geocoder = new google.maps.Geocoder();
+	geocoder.geocode({'latLng': latlng}, function(results, status) {
+			if (status == google.maps.GeocoderStatus.OK) {		
+				console.log(results);
+				if (results[1]) {
+					//alert(results[0].formatted_address)
+					for (var i=0; i<results[0].address_components.length; i++) {
+						for (var b=0;b<results[0].address_components[i].types.length;b++) {		
+							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
+								city = results[0].address_components[i];
+								DS.city = city.long_name;								
+							}
+							if ($.inArray(DS.city, supported) !== -1){
+								if (DS.city == 'Santa Barbara'){
+									DS.city = 'sb';
+								} else if (DS.city == 'San Francisco') {
+									DS.city = 'sf';
+								} else if (DS.city == 'Orange County') {
+									DS.city = 'oc';
+								} else {
+									DS.city = 'la';
+								}								
+								zone.val(DS.city).attr('selected', true).siblings('option').removeAttr('selected');
+								zone.selectmenu();
+								zone.selectmenu("refresh", true);
+							} else {
+								DS.city = 'la';
+								zone.val('la').attr('selected', true).siblings('option').removeAttr('selected');
+								zone.selectmenu();
+								zone.selectmenu("refresh", true);
+							}								
+							if (results[0].address_components[i].types[b] == "postal_code") {
+								zip = results[0].address_components[i];
+								DS.zip = zip.long_name;	
+								DS.nearby = true;
+								$('#opt-zip').val(DS.zip);	
+								break;
+							}
+						}
+					}					
+					DS.letDogsOut('',true);					
+				} else {
+					alert("No results found");
+				}				
+			} else {
+				alert("Geocoder failed due to: " + status);
+			}
+		});
+	}
 };
 	</script>
     </head>
     <body>
-<div data-role="page" id="map-page" data-url="map-page">
-	<div data-role="header">
+	<div data-role="page" id="home" class="page">
+	<div data-role="header" data-position="fixed">
 		<h1>Dog Sniffer</h1>
 		<a href="#options" data-role="button" data-icon="gear" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
 	</div>
@@ -285,17 +423,32 @@ var DS = {
 		<li id="show-more"><a href=""><h1>Show more</h1></a></li>
 	</ul>
 	</div>
-	<div data-role="footer" data-position="fixed" role="contentinfo">		
-		<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+		<div data-role="footer" data-position="fixed" role="contentinfo">		
+			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+		</div>
+		<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
+			<h3>Search Options</h3>
+			<select name="opt-city" id="opt-city" data-native-menu="false">
+				<option>Choose A City</option>
+				<option value="la">Los Angeles</option>
+				<option value="sb">Santa Barbara</option>
+				<option value="oc">Orange County</option>
+			</select>
+			<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true">
+			<button type="button" class="btn btn-default" id="opt-form">Submit</button>
+		</div>
+		<div data-role="popup" id="poo" style="max-width:400px;">
+			<div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div>
+			<div role="main" class="ui-content">
+				<h3 class="ui-title">We couldn't sniff out any listings for your search.</h3>
+				<p>You could try different category or search keyword, or even change your location settings.</p>
+				<a href="#options" id="settings" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-inline">Settings</a>
+				<a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Back</a>
+			</div>
+		</div>
 	</div>
-	<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
-		<h3>Search Options</h3>
-		<select name="opt-city" id="opt-city" data-native-menu="false"><option>Choose A City</option><option value="la">Los Angeles</option><option value="sb">Santa Barbara</option><option value="oc">Orange County</option></select>
-		<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true">
-		<button type="button" class="btn btn-default" id="opt-form">Submit</button>
-	</div>
-	<div data-role="popup" id="poo" style="max-width:400px;"><div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div><div role="main" class="ui-content"><h3 class="ui-title">We couldn't sniff out any listings for your search.</h3><p>You could try different category or search keyword, or even change your location settings.</p><a href="#options" id="settings" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-inline">Settings</a><a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Back</a></div>
-	</div>
-    </div>
+	<script type="text/javascript">
+		DS.init();			
+	</script>
     </body>
 </html>
