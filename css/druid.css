@@ -1003,10 +1003,11 @@ box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
 .entry-header h2 {margin:20px 0 0;}
 .entry-header .average-rating {margin:10px 0; }
 .entry-header .author-rating {margin-right:10px; }
-.entry-map {font-weight: 600;font-size: 14px;line-height:20px;}
+.entry-map {font-weight: 600;font-size: 14px;line-height:20px;margin-top:20px;}
 .dist {float:right;font-size:14px;font-weight:400;text-align:right;}
 .dist-time {color: #5a9d00; font-weight:700;font-size:16px;}
-#single-map {width: 100%;
-height: 100%;
-padding: 0px!important;}
-.listview > li h2 {margin-top:0; line-height: 1em;}
+.ui-listview  > li h2 {margin-top:0; line-height: 1em;}
+#single-map {width: 100%;height: 100%; padding: 0px !important;}
+.entry-header h2, .entry-header .average-rating {margin:10px 0 0;}
+.entry-header .average-rating {height:14px;}
+.entry-header .category  {margin:5px 0 0;font-weight:600}

@@ -36,10 +36,11 @@
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
- $(document).delegate('#single', 'pageshow', function (event, ui) {
-    var singleID = DS.sniffListing('id');
-	DS.singleView(singleID);
-});  
+$(document).on('pagebeforeshow', "#single", function (event, data) {
+    var parameters = $(this).data("url").split("?")[1];;
+    parameter = parameters.replace("id=",""); 
+    DS.singleView(parameter);
+});
 $( document ).on( "pagecreate", "#home", function() {
     $( "#show-more a" ).on( "click", function( e ){        
         DS.letDogsOut();
@@ -188,7 +189,7 @@ var DS = {
 				}
 			}
 			});	
-			var sniffed = '<h2>'+value.title+'</h2>'+reviews;			
+			var sniffed = '<h2>'+value.title+'</h2>'+reviews+'<p class="category">'+value.terms.type[0].name+'</p>';			
 			
 			$(".entry-header").append(sniffed);	
 			
@@ -203,10 +204,6 @@ var DS = {
             }
         });
 		
-	},
-	sniffListing: function (name){
-		var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
-		return match && decodeURIComponent(match[1].replace(/\+/g, ' '));	
 	},
 	refresh_list: function (){
 		$('.druid-list-item').remove();
@@ -305,13 +302,11 @@ var DS = {
 						}						
 					}
 					img = '<img src="'+img+'" class="thumbnail" />';
-					sniffed = sniffed + '<li class="druid-list-item ui-li-has-alt ui-li-has-thumb item-'+value.type+'">' +
-			      	'<a href="single.html?id='+value.ID+'" class="ui-btn">' + img +'<h2>'+value.title+'</h2>' + reviews +
-					//'<p>'+value.street+'<br />'+value.city+', '+value.zip+'<br />'+value.phone+'</p>' + 
+					sniffed = sniffed + '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
+			      	'<a href="single.html?id='+value.ID+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h2>'+value.title+'</h2>' + reviews +
 					'<p><strong>'+value.street+', '+value.city+'</strong></p>' + 
 					'<p>'+value.terms.type[0].name+'</p>' + 
 					'</a>'+
-					//'<a href="tel:'+value.phone+'" class="ui-btn ui-btn-icon-notext ui-icon-gear" title="View"></a>'+
 					'</li>';
 				 });
                 $( ".druid-listings" ).find( "#show-more" ).before(sniffed);
@@ -420,7 +415,7 @@ var DS = {
 				<option value="travel">Travel</option>
     	</select>
 	<ul class="druid-listings" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
-		<li id="show-more"><a href=""><h1>Show more</h1></a></li>
+		<li id="show-more" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
 	</ul>
 	</div>
 		<div data-role="footer" data-position="fixed" role="contentinfo">		
