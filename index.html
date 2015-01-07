@@ -42,6 +42,7 @@ $(document).on('pagebeforeshow', "#single", function (event, data) {
     DS.singleView(parameter);
 });
 $( document ).on( "pagecreate", "#home", function() {
+	DS.onDeviceReady();
     $( "#show-more a" ).on( "click", function( e ){        
         DS.letDogsOut();
         e.preventDefault();
@@ -50,15 +51,10 @@ $( document ).on( "pagecreate", "#home", function() {
         $( "#poo" ).popup( "close" );  
         e.preventDefault();
     });	
-	 $( "#opt-form" ).on( "click", function( e ){ 
-		DS.city = $('#opt-city').val();
-		DS.zip = $('#opt-zip').val();	       
-        DS.refresh_list();
-		DS.letDogsOut();
-        e.preventDefault();
-    });	
-	$('#s').on( "change", function( e ){   
+	$('.onchange').on( "change", function( e ){   
 		DS.search = $('#s').val();	 
+		DS.city = $('#opt-city').val();
+		DS.zip = $('#opt-zip').val();	
 		DS.refresh_list();  
         DS.letDogsOut();
 		e.preventDefault();
@@ -81,9 +77,9 @@ var DS = {
 	search:"",
 	term: "",
     offset: 1,
-	post_type: 'listing',
-	url: '',
-	urlCatch: '',
+	post_type: "listing",
+	url: "",
+	urlCatch: "",
 	pp: 5,	
 	origin: [],
 	nearby: false,
@@ -207,7 +203,7 @@ var DS = {
 	},
 	refresh_list: function (){
 		$('.druid-list-item').remove();
-		this.offset = 1;
+		DS.offset = 1;
 	},
 	pauseInputs: function (){
 		$('select').selectmenu('disable');
@@ -270,7 +266,7 @@ var DS = {
 					DS.showMore(DS.url);
 				}
 			},
-			timeout: 6000,  // Timeout after 6 seconds
+			timeout: 10000,  // Timeout after 6 seconds
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
 				$.mobile.loading( "hide" );
@@ -313,28 +309,29 @@ var DS = {
                 $( ".druid-listings" ).listview( "refresh" );
                 DS.playInputs();
             },
-            timeout: 6000,  // Timeout after 6 seconds
+            timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);                
             }
         });
     },
+	/*
 	init: function() {
-		this.bindEvents();
+		DS.bindEvents();
 	},
 	bindEvents: function() {
 		if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
-			document.addEventListener("deviceready", this.onDeviceReady, false);
+			document.addEventListener("deviceready", DS.onDeviceReady, false);
 		} else {
-			this.onDeviceReady();
+			DS.onDeviceReady();
 		}
     },
-	onDeviceReady: function() {
-		navigator.geolocation.getCurrentPosition(this.onSuccess, this.onError);     
-	},
 	onError: function (error) { 
-		
 		alert('Geolocation failed: '+error.message);
+	},	
+	*/
+	onDeviceReady: function() {
+		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);     
 	},
 	onSuccess: function(position) {
 	var zone = $('#opt-city');
@@ -342,13 +339,12 @@ var DS = {
 	var lat = position.coords.latitude;
 	var lng = position.coords.longitude;
 	var latlng = new google.maps.LatLng(lat, lng);
-	DS.origin = [latlng.lat(), latlng.lng()];
+	DS.origin = [lat, lng];
 	geocoder = new google.maps.Geocoder();
 	geocoder.geocode({'latLng': latlng}, function(results, status) {
 			if (status == google.maps.GeocoderStatus.OK) {		
 				console.log(results);
 				if (results[1]) {
-					//alert(results[0].formatted_address)
 					for (var i=0; i<results[0].address_components.length; i++) {
 						for (var b=0;b<results[0].address_components[i].types.length;b++) {		
 							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
@@ -402,7 +398,7 @@ var DS = {
 		<a href="#options" data-role="button" data-icon="gear" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
 	</div>
 	<div role="main" class="ui-content">
-		<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" />
+		<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" />
    		<select name="opt-category" id="opt-category" data-native-menu="false">
         		<option data-placeholder="true">Categories</option>
 				<option value="all">All</option>
@@ -423,14 +419,13 @@ var DS = {
 		</div>
 		<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
 			<h3>Search Options</h3>
-			<select name="opt-city" id="opt-city" data-native-menu="false">
+			<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
 				<option>Choose A City</option>
 				<option value="la">Los Angeles</option>
 				<option value="sb">Santa Barbara</option>
 				<option value="oc">Orange County</option>
 			</select>
-			<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true">
-			<button type="button" class="btn btn-default" id="opt-form">Submit</button>
+			<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange">
 		</div>
 		<div data-role="popup" id="poo" style="max-width:400px;">
 			<div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div>
@@ -442,8 +437,5 @@ var DS = {
 			</div>
 		</div>
 	</div>
-	<script type="text/javascript">
-		DS.init();			
-	</script>
     </body>
 </html>
