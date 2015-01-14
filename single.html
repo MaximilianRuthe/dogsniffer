@@ -38,7 +38,7 @@
     </head>
     <body>
 <div data-role="page" id="single" class="page">
-	<div data-role="header">
+	<div data-role="header" data-position="fixed" id="single-header">
 		<a href="#" data-role="button" data-icon="gear" data-rel="back" class="ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-left ui-icon-carat-l">Back</a>
 		<h1>Dog Sniffer</h1>
 	</div>
@@ -54,21 +54,26 @@
 		</div>
 		<div class="entry-content">
 			<ul data-role="listview" data-inset="true">
-    			<li data-icon="location" class="page-directions"><a href="#map-pop" data-rel="popup" data-transition="pop">Directions</a></li>
+    			<li data-icon="location" class="page-directions"><a href="#map-pop"  data-position-to="window" data-rel="popup" data-transition="pop">Directions</a></li>
    			 	<li data-icon="phone" class="page-call" id="tel"><a href="#">Call</a></li>
     			<li><a href="#info-pop" data-rel="popup" data-transition="pop">More Info</a></li>
 			</ul>
+			<ul class="druid-reviews" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
+			<ul class="druid-related" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
+	</ul>
 		</div>
 	</div>	
-	<div data-role="footer" data-position="fixed" role="contentinfo"></div>
-	<div data-role="popup" id="info-pop" style="width:400px; height:300px;">
+	
+	<div data-role="footer" role="contentinfo"></div>
+	
+	<div data-role="popup" id="info-pop">
 		<div data-role="header" data-theme="a"><h1>More Info</h1></div>
 		<div role="main" class="ui-content" id="listing-about"></div>
 	</div>
-	<div data-role="popup" id="map-pop" style="width:400px; height:300px;">
+	<div data-role="popup" id="map-pop" data-corners="false" data-tolerance="15,15">
 		<div data-role="header" data-theme="a"><h1>Directions</h1></div>
 		<div role="main" class="ui-content" id="single-map">
-			<div id="mage-map"></div>	
+			<div id="mage-map" style="width:480px;height:320px;"></div>	
 		</div>
 	</div>
 </div>
