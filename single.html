@@ -56,21 +56,34 @@
 			<ul data-role="listview" data-inset="true">
     			<li data-icon="location" class="page-directions"><a href="#map-pop"  data-position-to="window" data-rel="popup" data-transition="pop">Directions</a></li>
    			 	<li data-icon="phone" class="page-call" id="tel"><a href="#">Call</a></li>
-    			<li><a href="#info-pop" data-rel="popup" data-transition="pop">More Info</a></li>
+    			<!--<li><a href="#info-pop" data-rel="popup" data-transition="pop">More Info</a></li>-->
 			</ul>
-			<ul class="druid-reviews" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
-			<ul class="druid-related" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
-	</ul>
+			<div data-role="collapsible" class="druid-collapse">
+				<h4>More Info</h4>
+				<ul data-role="listview" id="listing-more"></ul>
+			</div>
+			<div data-role="collapsible" class="druid-collapse contain-reviews">
+				<h4>Reviews</h4>
+				<ul class="druid-reviews" data-role="listview" class="ui-corner-all ui-shadow"></ul>
+			</div>
+			<div data-role="collapsible" class="druid-collapse contain-related">
+				<h4>Similar Listings</h4>
+				<ul class="druid-related" data-role="listview" class="ui-corner-all ui-shadow"></ul>
+			</div>
+			
+			
 		</div>
 	</div>	
 	
 	<div data-role="footer" role="contentinfo"></div>
 	
 	<div data-role="popup" id="info-pop">
+		 <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
 		<div data-role="header" data-theme="a"><h1>More Info</h1></div>
 		<div role="main" class="ui-content" id="listing-about"></div>
 	</div>
 	<div data-role="popup" id="map-pop" data-corners="false" data-tolerance="15,15">
+	 <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
 		<div data-role="header" data-theme="a"><h1>Directions</h1></div>
 		<div role="main" class="ui-content" id="single-map">
 			<div id="mage-map" style="width:480px;height:320px;"></div>	

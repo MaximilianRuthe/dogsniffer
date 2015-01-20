@@ -1013,3 +1013,5 @@ box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
 .entry-header h2, .entry-header .average-rating {margin:10px 0 0;}
 .entry-header .average-rating {height:14px;}
 .entry-header .category  {margin:5px 0 0;font-weight:600}
+#listing-more >li p, .druid-reviews > li p{white-space:normal; font-size: 1em;}
+.druid-collapse {margin: 0;}

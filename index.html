@@ -54,9 +54,28 @@ $( document ).on( "pagecreate", "#home", function() {
         e.preventDefault();
     });	
 	$('.onchange').on( "change", function( e ){   
+		DS.city = $('#opt-city').val();
+		DS.zip = $('#opt-zip').val();	
+		DS.term = '';
+		DS.refresh_list();  
+        DS.letDogsOut();
+		e.preventDefault();
+    });	
+});
+$( document ).on( "pagecreate", "#search", function() {
+	/*
+	$('.onchange').on( "change", function( e ){   
 		DS.search = $('#s').val();	 
 		DS.city = $('#opt-city').val();
 		DS.zip = $('#opt-zip').val();	
+		DS.refresh_list();  
+        DS.letDogsOut();
+		e.preventDefault();
+    });	
+	*/
+	$('#s').on( "change", function( e ){   
+		DS.search = $('#s').val();	 
+		DS.zip = '';	
 		DS.refresh_list();  
         DS.letDogsOut();
 		e.preventDefault();
@@ -81,8 +100,7 @@ $( document ).on( "pagecreate", "#single", function() {
 	$(document).on('scrollstop', function(){ 
 		if ($(window).scrollTop() >= stickyOffset) $('#single-header h1').html(page_title);
 		else  $('#single-header h1').html('Dog Sniffer');
-	});
-//$( "#mage-map" ).css( { "width" : 0, "height" : 0 } );        
+	});    
     $( "#map-pop" ).on({
         popupbeforeposition: function() {
             var size = DS.scale( 480, 320, 0, 1 ),
@@ -92,17 +110,9 @@ $( document ).on( "pagecreate", "#single", function() {
 			directions.refresh();
 			directions.idle();
 			directions.fitZoom();	
-			/*
-            $( "#map-map" ).contents().find( "#map_canvas" )
-                .css( { "width": w, "height" : h } );
-			*/
         },
         popupafterclose: function() {
             $( "#map-map" ).css( { "width" : 0, "height" : 0 } );
-			/*
-            $( "#map-iframe iframe" ).contents().find( "#map_canvas" )
-                .css( { "width": 0, "height" : 0 } );
-				*/
         }
     });
 });
@@ -112,13 +122,14 @@ var DS = {
     zip: '',
 	search: '',
 	term: '',
-    offset: 1,
+    offset: 0,
 	post_type: 'listing',
 	url: '',
 	urlCatch: '',
 	pp: 5,	
 	origin: [],
 	nearby: false,
+	single: {title:'',about:'',hours:'',website:''},
 	singleView: function(singleID){
 		var city = DS.city;
 		var barkback = 'http://dogsniffer.com/'+city+'/wp-json/posts/'+singleID;	
@@ -222,7 +233,7 @@ var DS = {
 				}
 			}
 			});	
-			var cat = category = hours = openDay = website = '';
+			var cat = category = hours = openDay = website = theTime = '';
 			if (value.terms.length !== 0) {
 				cat = value.terms.type[0].slug;
 				category = '<p class="category">'+value.terms.type[0].name+'</p>';
@@ -232,19 +243,27 @@ var DS = {
 			var weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 			var weekday = weekdays[today.getDay()];
 			$.each({'Monday':'mon','Tuesday':'tue','Wednesday':'wed','Thursday':'thu','Friday':'fri','Saturday':'sat','Sunday':'sun'}, function(day,hour){
-				if (value.cast['mage_'+hour+'-from'] !== ''){ 
+				theTime = value.cast['mage_'+hour+'-from'] || '';	
+				if (theTime !== ''){ 
 					hours += '<strong>'+day+':</strong> '+value.cast['mage_'+hour+'-from']+' - '+value.cast['mage_'+hour+'-to']+'<br />';
 					if (weekday === day) openDay = '<div class="today">Hours Today: '+value.cast['mage_'+hour+'-from']+' - '+value.cast['mage_'+hour+'-to']+'</div>';
+				} else {
+				
+				
 				}
 			});
 			var website = value.cast['mage_url'];
-			if (hours !== '') $("#listing-about").append('<h2>Hours</h2>'+hours+'<hr />');
-			if (website !== '') $("#listing-about").append('<h2>Website</h2><a href="'+website+'">'+website+'</a><hr />');
+			//if (hours !== '') $("#listing-about").append('<h2>Hours</h2>'+hours+'<hr />');
+			//if (website !== '') $("#listing-about").append('<h2>Website</h2><a href="'+website+'">'+website+'</a><hr />');
+			if (hours !== '') $("#listing-more").append('<li data-role="list-divider">Hours</li><li>'+hours+'</li>');
+			if (website !== '') $("#listing-more").append('<li data-role="list-divider">Website</li><li><a href="'+website+'">'+website+'</a></li>');
 			}
 			page_title = value.title;
 			var sniffed = '<h2>'+value.title+'</h2>'+reviews+openDay+category;			
 			$(".entry-header").append(sniffed);	
 			$("#listing-about").append('<h2>About</h2><p>'+value.content+'</p>');
+			$("#listing-more").append('<li data-role="list-divider">About</li><li>'+value.content+'</li>');
+			$( "#listing-more" ).listview( "refresh" );
 			$("#tel a").attr("href", 'tel:'+value.phone);
 			$("#tel a").append(' '+value.phone);			
 			DS.showReviews(barkback+'/comments');  
@@ -263,7 +282,7 @@ var DS = {
 	},
 	refresh_list: function (){
 		$('.druid-list-item').remove();
-		DS.offset = 1;
+		DS.offset = 0;
 	},
 	pauseInputs: function (){
 		$('select').selectmenu('disable');
@@ -300,7 +319,8 @@ var DS = {
 		if (zip !== ''){
 			s4 = "&filter[meta_key]=mage_zip&filter[meta_value]="+zip;
 		}
-		var barkback = 'http://dogsniffer.com/'+city+'/wp-json/posts?filter[post_status]=publish&filter[orderby]=date&filter[order]=desc&filter[posts_per_page]='+count+'&page='+DS.offset;		
+		var barkback = 'http://dogsniffer.com/'+city+'/wp-json/posts?filter[post_status]=publish&filter[orderby]=date&filter[order]=desc&filter[posts_per_page]='+count+
+		'&filter[offset]='+DS.offset;		
 		DS.urlCatch = barkback + s1 + s2;
 		DS.url = barkback + s1 + s2 + s3 + s4;
 	
@@ -390,7 +410,7 @@ var DS = {
 			dataType: 'json',
             success: function( response ) {
 				var sniffed = '';	
-				$( ".druid-related" ).append('<li data-role="list-divider">Similar Listings</li>');
+				//$( ".druid-related" ).append('<li data-role="list-divider">Similar Listings</li>');
 			
         		$.each(response, function(index, value) {
 					DS.offset = DS.offset + 1;
@@ -418,8 +438,12 @@ var DS = {
 					'</a>'+
 					'</li>';
 				 });
-                $( ".druid-related" ).append(sniffed);
-                $( ".druid-related" ).listview( "refresh" );
+				if (sniffed !== ''){
+                	$( ".druid-related" ).append(sniffed);
+               		$( ".druid-related" ).listview( "refresh" );
+				} else {
+					$( ".contain-related" ).remove();
+				}
                 DS.playInputs();
             },
             timeout: 10000,  // Timeout after 10 seconds
@@ -435,7 +459,7 @@ var DS = {
 			dataType: 'json',
             success: function( response ) {
 				var sniffed = '';	
-				$( ".druid-reviews" ).append('<li data-role="list-divider">Reviews</li>');
+				//$( ".druid-reviews" ).append('<li data-role="list-divider">Reviews</li>');
         		$.each(response, function(index, value) {
 					console.log(value);
 					var img = value.author.avatar;
@@ -456,8 +480,13 @@ var DS = {
 					'<em>'+fname+'</em>' + 
 					'</li>';
 				});
-                $( ".druid-reviews" ).append(sniffed);
-                $( ".druid-reviews" ).listview( "refresh" );
+				if (sniffed !== ''){
+                	$( ".druid-reviews" ).append(sniffed);
+               		$( ".druid-reviews" ).listview( "refresh" );
+				} else {
+					$( ".contain-reviews" ).remove();
+				}
+              
                 //DS.playInputs();
             },
             timeout: 10000,  // Timeout after 10 seconds
@@ -480,6 +509,7 @@ var DS = {
 	geocoder.geocode({'latLng': latlng}, function(results, status) {
 			if (status == google.maps.GeocoderStatus.OK) {		
 				DS.address = results[0].formatted_address;
+				console.log(results);
 				if (results[1]) {				
 					for (var i=0; i<results[0].address_components.length; i++) {
 						for (var b=0;b<results[0].address_components[i].types.length;b++) {		
@@ -507,10 +537,11 @@ var DS = {
 								zone.selectmenu("refresh", true);
 							}								
 							if (results[0].address_components[i].types[b] == "postal_code") {
-								zip = results[0].address_components[i];
-								DS.zip = zip.long_name;	
+								DS.zip = results[0].address_components[i].long_name;	
 								DS.nearby = true;
 								$('#opt-zip').val(DS.zip);	
+								var add = results[0].address_components[0].long_name+' '+results[0].address_components[1].long_name;
+								$('#opt-add').val(add);	
 								break;
 							}
 						}
@@ -558,34 +589,31 @@ var DS = {
 		<a href="#options" data-role="button" data-icon="gear" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
 	</div>
 	<div role="main" class="ui-content">
-		<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" />
-   		<select name="opt-category" id="opt-category" data-native-menu="false">
-        		<option data-placeholder="true">Categories</option>
-				<option value="all">All</option>
-        		<option value="activities">Activities</option>
-        		<option value="dining">Dining</option>
-        		<option value="health-care">Health & Care</option>
-        		<option value="services">Services</option>
-				<option value="shopping">Shopping</option>
-				<option value="training">Training</option>
-				<option value="travel">Travel</option>
-    	</select>
-	<ul class="druid-listings" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
-		<li id="show-more" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
-	</ul>
-	</div>
-		<div data-role="footer" data-position="fixed" role="contentinfo">		
-			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
-		</div>
-		<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
-			<h3>Search Options</h3>
-			<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
+	<input type="text" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange">
+	<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
 				<option>Choose A City</option>
 				<option value="la">Los Angeles</option>
 				<option value="sb">Santa Barbara</option>
 				<option value="oc">Orange County</option>
-			</select>
-			<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange">
+			</select>	
+	<ul class="druid-listings" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
+		<li id="show-more" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
+	</ul>
+	</div>
+		<div data-role="footer" data-position="fixed" role="contentinfo">	
+			<div data-role="navbar">
+				<ul>
+					<li><a href="index.html" class="ui-btn-active" data-icon="location" >Nearby</a></li>
+					<li><a href="search.html" data-icon="search">Search</a></li>
+				</ul>
+			</div><!-- /navbar -->
+			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+		</div>
+		<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
+			<h3>Search Options</h3>
+					
+			<input type="text" placeholder="Street" id="opt-add" name="opt-add" value="" data-clear-btn="true">
+			
 		</div>
 		<div data-role="popup" id="poo">
 			 <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
