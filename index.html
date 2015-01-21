@@ -49,33 +49,35 @@ $( document ).on( "pagecreate", "#home", function() {
         DS.letDogsOut();
         e.preventDefault();
     });	
- 	$( "#settings" ).on( "click", function( e ){        
+ 	$( "#research" ).on( "click", function( e ){      
+		DS.zip = '';
+		DS.search = '';
+		DS.term = '';  
+		$('#opt-zip').val('');
+		$('#s').val('');	
+		$('#opt-category').val('all').attr('selected', true).siblings('option').removeAttr('selected');
+		$('#opt-category').selectmenu();
+		$('#opt-category').selectmenu("refresh", true);
         $( "#poo" ).popup( "close" );  
+		DS.letDogsOut();
+        e.preventDefault();
+    });	
+	$( "#expand" ).on( "click", function( e ){      
+		DS.zip = '';
+		DS.term = '';  
+		$('#opt-zip').val('');
+		$('#opt-category').val('all').attr('selected', true).siblings('option').removeAttr('selected');
+		$('#opt-category').selectmenu();
+		$('#opt-category').selectmenu("refresh", true);
+        $( "#poo" ).popup( "close" );  
+		DS.letDogsOut();
         e.preventDefault();
     });	
 	$('.onchange').on( "change", function( e ){   
 		DS.city = $('#opt-city').val();
 		DS.zip = $('#opt-zip').val();	
-		DS.term = '';
-		DS.refresh_list();  
-        DS.letDogsOut();
-		e.preventDefault();
-    });	
-});
-$( document ).on( "pagecreate", "#search", function() {
-	/*
-	$('.onchange').on( "change", function( e ){   
 		DS.search = $('#s').val();	 
-		DS.city = $('#opt-city').val();
-		DS.zip = $('#opt-zip').val();	
-		DS.refresh_list();  
-        DS.letDogsOut();
-		e.preventDefault();
-    });	
-	*/
-	$('#s').on( "change", function( e ){   
-		DS.search = $('#s').val();	 
-		DS.zip = '';	
+		//DS.term = '';
 		DS.refresh_list();  
         DS.letDogsOut();
 		e.preventDefault();
@@ -92,6 +94,7 @@ $( document ).on( "pagecreate", "#search", function() {
 	});
 });
 $( document ).on( "pagecreate", "#single", function() {
+	DS.search = '';
 	var stickyOffset = 40;
 	$(document).on('scrollstart', function(){ 
 		if ($(window).scrollTop() >= stickyOffset) $('#single-header h1').html(page_title);
@@ -169,7 +172,7 @@ var DS = {
 						markers: [{lat: latlng.lat(),lng: latlng.lng()}]
 					});
 					//DS.nearby = true;
-					DS.origin = [34.0544902,-118.4413104];
+					//DS.origin = [34.0544902,-118.4413104];
 					
 					if (DS.nearby){
 					directions = new GMaps({
@@ -289,8 +292,10 @@ var DS = {
 		$('button, a.ui-btn').attr('disabled','disabled');
 		$('a.ui-btn').addClass('ui-disabled');
 		$('input[type="text"], input[type="search"]').attr('disabled','disabled');
+		var loadtext = 'Sniffing Out Locations Near You';
+		if (DS.zip !== '') loadtext = 'Sniffing Out Locations Near '+DS.zip;
 		$.mobile.loading( "show", {
-			text: 'Sniffing Out Locations Near You',
+			text: loadtext,
 			textVisible: true,
 			theme: 'z',
 			html: ""
@@ -329,24 +334,21 @@ var DS = {
 		DS.pauseInputs();
 		cat = cat || DS.term;
 		first = first || false;
-		DS.processURL(cat);	
-		var message = 'We couldn\'t sniff out any listings for your search.';
+		DS.processURL(cat);			
 		$.ajax({
 			type: 'GET',
 			url: DS.url,
 			dataType: 'json',
             success: function(pup) {
 				if ($.isEmptyObject(pup)){
-					if (DS.zip !== '') message = 'We couldn\'t sniff out any listings for your search in <span style="color:#dd33333">'+DS.zip+'</span>.';
-					DS.zip = '';
-					DS.search = '';
-					DS.term = '';
-					if (!first){
-						
+					var message = 'We couldn\'t sniff out any listings with the criteria:';
+					if (DS.search !== '') message += '<p>Keyword: <span style="color:#dd3333">'+DS.search+'</span></p>';
+					if (DS.zip !== '') message += '<p>Zip Code: <span style="color:#dd3333">'+DS.zip+'</span></p>';
+					if (DS.term !== '') message += '<p>Category: <span style="color:#dd3333">'+DS.term+'</span></p>';					
+					if (!first){						
 						$( "#poo h3.ui-title" ).html(message);
 						$( "#poo" ).popup( "open" );  
-					}
-					DS.showMore(DS.urlCatch);
+					}					
 				} else {
 					DS.showMore(DS.url);
 				}
@@ -356,6 +358,8 @@ var DS = {
                 console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
 				$.mobile.loading( "hide" );
             }
+		}).done(function() {
+			DS.playInputs();
 		});
 	},
     showMore: function(whistle) {			
@@ -394,13 +398,12 @@ var DS = {
 					'</li>';
 				 });
                 $( ".druid-listings" ).find( "#show-more" ).before(sniffed);
-                $( ".druid-listings" ).listview( "refresh" );
-                DS.playInputs();
+                $( ".druid-listings" ).listview( "refresh" );                
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);                
-            }
+            }			
         });
     },
     showRelated: function(whistle) {			
@@ -589,29 +592,34 @@ var DS = {
 		<a href="#options" data-role="button" data-icon="gear" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
 	</div>
 	<div role="main" class="ui-content">
-	<input type="text" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange">
-	<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
+	<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange">
+	<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" />
+   		<select name="opt-category" id="opt-category" data-native-menu="false">
+        		<option data-placeholder="true">Categories</option>
+				<option value="all">All Categories</option>
+        		<option value="activities">Activities</option>
+        		<option value="dining">Dining</option>
+        		<option value="health-care">Health & Care</option>
+        		<option value="services">Services</option>
+				<option value="shopping">Shopping</option>
+				<option value="training">Training</option>
+				<option value="travel">Travel</option>
+    </select>
+	<ul class="druid-listings" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
+		<li id="show-more" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
+	</ul>
+	</div>
+		<div data-role="footer" data-position="fixed" role="contentinfo">			
+			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+		</div>
+		<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
+			<h3>Search Options</h3>
+			<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
 				<option>Choose A City</option>
 				<option value="la">Los Angeles</option>
 				<option value="sb">Santa Barbara</option>
 				<option value="oc">Orange County</option>
 			</select>	
-	<ul class="druid-listings" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow">
-		<li id="show-more" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
-	</ul>
-	</div>
-		<div data-role="footer" data-position="fixed" role="contentinfo">	
-			<div data-role="navbar">
-				<ul>
-					<li><a href="index.html" class="ui-btn-active" data-icon="location" >Nearby</a></li>
-					<li><a href="search.html" data-icon="search">Search</a></li>
-				</ul>
-			</div><!-- /navbar -->
-			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
-		</div>
-		<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
-			<h3>Search Options</h3>
-					
 			<input type="text" placeholder="Street" id="opt-add" name="opt-add" value="" data-clear-btn="true">
 			
 		</div>
@@ -620,9 +628,8 @@ var DS = {
 			<div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div>
 			<div role="main" class="ui-content">
 				<h3 class="ui-title"></h3>
-				<p>You could try different category or search keyword, or even change your location settings.</p>
-				<a href="#options" id="settings" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-inline">Settings</a>
-				<a href="#" class="ui-btn ui-corner-all ui-shadow ui-btn-inline" data-rel="back">Back</a>
+				<a href="#" id="expand" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-icon-left ui-btn-inline ui-icon-recycle"  data-icon="recycle">Expand Search</a>
+				<a href="#" id="research" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-icon-left ui-icon-delete" data-icon="delete">Clear All</a>
 			</div>
 		</div>
 	</div>
