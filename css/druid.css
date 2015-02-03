@@ -995,7 +995,7 @@ h2.ds-background{margin:0; border:none;}
 .druid-list-item .author-rating {font-size:11px;font-style:italic;margin-right:5px;}
 .druid-list-item .review-count {font-weight:400;vertical-align: top;}
 .druid-list-item a.ui-btn {padding-top:4px; padding-bottom:4px;}
-.review-count{display: inline-block;}
+.review-count{display: inline-block;vertical-align: top;}
 .map-cap {display:block; position:absolute; height:60px; width:100%; bottom:0;left:0; right: 0; padding:10px; background:#ffffff;margin: 0;box-sizing:border-box;}
 .mapbox {position:relative;height: 180px;width: 100%;background: #ffffff center top no-repeat;
 border: 1px solid #ddd;
@@ -1015,3 +1015,59 @@ box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
 .entry-header .category  {margin:5px 0 0;font-weight:600}
 #listing-more >li p, .druid-reviews > li p{white-space:normal; font-size: 1em;}
 .druid-collapse {margin: 0;}
+.ui-input-text input, .ui-input-search input {font-size: 14px;}
+.alert{padding: 15px;margin:5px 0; box-sizing: border-box; 
+border: 1px solid transparent;
+border-radius: 4px;}
+.alert-success{color: #3c763d;
+background-color: #dff0d8;
+border-color: #d6e9c6;}
+.druid-reviews li.druid-list-item {white-space:normal;-webkit-box-sizing: border-box;
+-moz-box-sizing: border-box;
+box-sizing: border-box;}
+.avatar {box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;-moz-box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;-o-box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;-webkit-box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;display:block;}
+.druid-reviews em {display:block;text-align: center;width: 100%;font-size:14px;font-weight: bold;
+text-shadow: 0 1px 0 #787878;
+margin: 3px 0;color: #474747;}
+.row-fluid [class*="span"] {
+display: block;
+float: left;
+width: 100%;
+min-height: 30px;
+margin-left: 2.564102564102564%;
+-webkit-box-sizing: border-box;
+-moz-box-sizing: border-box;
+box-sizing: border-box;
+}
+.row-fluid:before, .row-fluid:after {
+display: table;
+line-height: 0;
+content: "";
+}
+.row-fluid {
+width: 100%;
+}
+.row-fluid .span2 {
+width: 14.52991452991453%;
+}
+.row-fluid .span3 {
+width: 23.076923076923077%;
+}
+.row-fluid .span7 {
+width: 57.44680851063829%;
+}
+.row-fluid .span8 {
+width: 65.81196581196582%;
+}
+.row-fluid .span4 {
+width: 31.623931623931625%;
+}
+.row-fluid .span9 {
+width: 74.35897435897436%;
+}
+.row-fluid .span10 {
+width: 82.90598290598291%;
+}
+.row-fluid [class*="span"]:first-child {
+margin-left: 0;
+}
