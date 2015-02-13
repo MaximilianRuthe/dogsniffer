@@ -26,8 +26,10 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />	
-		<link rel='stylesheet' href='css/jquery.mobile-1.4.5.min.css' type='text/css' media='all' />
-		<link rel='stylesheet' href='css/druid.css' type='text/css' media='all' />
+		<link rel="stylesheet" href="css/magecast.min.css" />
+		<link rel="stylesheet" href="css/jquery.mobile.icons.min.css" />
+		<link rel='stylesheet' href='css/jquery.mobile.structure-1.4.5.min.css' type='text/css' media='all' />
+		<link rel='stylesheet' href='druid.css' type='text/css' media='all' />
 		<link rel="stylesheet" type="text/css" href="css/index.css" />	
         <title>Dog Sniffer</title>		
 		<script type="text/javascript" src="js/jquery.js"></script>
@@ -38,13 +40,71 @@
 	<script>
 var directions;
 var page_title;
+var map;
+var authenticated;
 $(document).on('pagebeforeshow', "#single", function (event, data) {
     var parameters = $(this).data("url").split("?")[1];;
     DS.post.id = parameter = parameters.replace("id=",""); 
-    DS.singleView(DS.post.id);
+    DS.singleView(DS.post.id);	
 });
 $( document ).on( "pagecreate", "#home", function() {
+	
+	$( "#login" ).enhanceWithin().popup();
+	$( "#actions" ).enhanceWithin().popup();
+	var regSwitch = $( "#open-register" ),
+        logSwitch = $( "#open-login" ),
+		passSwitch = $( "#open-password" ),
+		mapSwitch = $( "#open-map" ),
+		mapPage = $( "#mage-map" ),
+		mapList = $( "#mage-list" ),
+        registerForm = $( "#register-form" ),
+		passwordForm = $( "#password-form" ),
+        loginForm = $( "#login-form" );
+	mapSwitch.selectmenu().selectmenu('refresh', true); 
 	DS.onDeviceReady();
+	mapSwitch.on( "change", function( e ){
+		var toggleMap = $('#open-map').val();
+		if (toggleMap == 'list'){
+			mapPage.show();
+			if (DS.nearby === false){
+				DS.geo.lat = 34.0544902;
+				DS.geo.lng = -118.4413104;
+			}
+			map = new GMaps({
+				div: '#mage-map',
+				lat: DS.geo.lat,
+				lng: DS.geo.lng,
+				disableDefaultUI: true,
+				zoom: 15,		
+				width: 'auto',
+				height: '100%',
+				idle: function(){
+					map.refresh();
+				},
+				resize: function(){
+					var center = map.getCenter();
+					map.setCenter(center.lat(), center.lng());
+				}
+			});	
+			DS.queryMap(map,DS.query.posts);
+       		mapList.hide();
+		} else {
+			mapList.show();
+			mapPage.hide();
+		}
+		e.preventDefault();
+	});
+	mapSwitch.on( "click", function( e ){
+		
+    });
+    regSwitch.on( "click", function( e ){
+		registerForm.show();
+        loginForm.hide();
+    });
+    logSwitch.on( "click", function( e ){
+        loginForm.show();
+        registerForm.hide();
+    });	
     $( "#show-more a" ).on( "click", function( e ){        
         DS.showMore();
         e.preventDefault();
@@ -71,7 +131,7 @@ $( document ).on( "pagecreate", "#home", function() {
     });	
 	$('.onchange').on( "change", function( e ){  
 		DS.refresh_list();
-		//DS.address.city = $('#opt-city').val();
+		DS.address.city = $('#opt-city').val();
 		DS.address.zip = $('#opt-zip').val();	
 		DS.query.search = $('#s').val();
 		if (DS.query.search != '') {
@@ -84,6 +144,7 @@ $( document ).on( "pagecreate", "#home", function() {
     });	
 	$('#opt-category').on( "change", function( e ){
 		DS.refresh_list();
+		$('#s').val('');	
 		DS.query.term = $('#opt-category').val();
 		DS.query.term = (DS.query.term == 'all')? '' : DS.query.term;
 		DS.showMore();
@@ -115,17 +176,19 @@ $( document ).on( "pagecreate", "#home", function() {
 			}
 		}
 		
-	});	
+	});
+	
 });
 $( document ).on( "pagecreate", "#single", function() {
+	$( "#login" ).enhanceWithin().popup();
 	DS.query.search = '';
 	var stickyOffset = 40;
 	$(document).on('scrollstart', function(){ 
-		if ($(window).scrollTop() >= stickyOffset) $('#single-header h1').html(page_title);
+		if ($(window).scrollTop() >= stickyOffset) $('#single-header h1').html(DS.post.title);
 		else  $('#single-header h1').html('Dog Sniffer');
 	});
 	$(document).on('scrollstop', function(){ 
-		if ($(window).scrollTop() >= stickyOffset) $('#single-header h1').html(page_title);
+		if ($(window).scrollTop() >= stickyOffset) $('#single-header h1').html(DS.post.title);
 		else  $('#single-header h1').html('Dog Sniffer');
 	});    
     $( "#map-pop" ).on({
@@ -145,23 +208,34 @@ $( document ).on( "pagecreate", "#single", function() {
 	$('.submit-rating').on( "click", function( e ){	
 		e.preventDefault();
 		DS.postReview();
-	});
+	});	
+	 $( '#review' ).on({
+        popupafterclose: function() {
+			if (DS.user.cookie === '') {
+				setTimeout( function(){ $( '#login' ).popup( 'open' ) }, 100 );
+			}
+        }
+    });
 });
 var DS = {
-	address: {full:'',city:'Orange County',city_code: 'oc', zip:'',state:'',street:'',county:''},
+	address: {full:'',city:'Los Angeles',city_code: 'la', zip:'',state:'',street:'',county:''},
 	supported: ['Los Angeles','Orange County','Santa Barbara'],
 	query: {search: '',term: '',post_type: 'listing',count: 5,offset: 0},
 	geo: {origin:[],lat:'',lng:''},
 	single: {title:'',about:'',hours:'',website:''},
-	user: {cookie:''},
-	post: {id:''},
+	user: {cookie:'',cookie_name:'',username:'',title:'',about:'',hours:'',website:''},
+	cache: {review:'',rating:'',full:false},
+	post: {id:'',category:'',reviews:'',},
 	nearby: false,	
 	setSelect: function(target, value){
 		$(target).val(value).attr('selected', true).siblings('option').removeAttr('selected');
 		$(target).selectmenu();
 		$(target).selectmenu("refresh", true);
 	},
-	setUser: function(){
+	setUser: function(user){
+		DS.user.cookie = user.cookie;
+		DS.user.cookie_name = user.cookie_name;
+		DS.user.data = user.user;
 		$( "#welcome h3" ).html('Welcome Back, '+DS.user.data.displayname);
 		$( "#welcome p" ).html('<img src="'+DS.user.data.avatar+'" class="thumbnail" />');
 		$( "#welcome" ).popup( "open" );
@@ -169,26 +243,47 @@ var DS = {
 		$('.footer-nav').append('<li><a href="#profile" data-icon="user">Profile</a></li>');				
 	},
 	postReview: function(){
-		var review = $('#review_text').val();
-		var rating = $('input[name*=rating]:checked').val();
-		var url = DS.listen('post_comment',review,rating);
-		alert('URL: '+url)
-		console.log(url);
-		if (url){
-			$.ajax({
-				type: 'GET',
-				url: url,
-				dataType: 'json',
-            	success: function(response) {
-					alert('Success');
-					console.log(response);
-				}
-			});
-
+		DS.cache.review = $('#review_text').val() || '';
+		DS.cache.rating = $('input[name*=rating]:checked').val() || '';
+		if (DS.cache.review === ''){
+			$('#review div.alert').html('Please add a short review summary.').show();
+		} else if (DS.cache.rating === ''){
+			$('#review div.alert').html('Please choose a rating.').show();
+		} else if (DS.user.cookie === ''){
+			$( "#review" ).popup( "close" );
+			DS.cache.full = true;
+			$('#login div.alert').html('You have to be Signed In to Submit a Review.').show();
 		} else {
-			$( "#login" ).popup( "open" ); 
+			var whistle = DS.listen('post_comment',DS.cache.review,DS.cache.rating) || '';
+			DS.pauseInputs('Barking your Review');
+		$.ajax({
+			type: 'GET',
+			url: whistle,
+			dataType: 'json',
+            success: function(response) {
+				if (response.status !== 'ok'){
+					$('div.review-alert').html(response.error).show();					
+				} else {
+				console.log(response);
+				var rev = {rating: response.rating, review_count: response.count};		
+				var average = DS.displayReview(rev,false,true);
+				$('.entry-header .average-rating').html(average);
+				var rating = DS.displayReview(DS.cache.rating,true);
+				$( ".druid-reviews-title" ).show();
+				$( ".druid-reviews").append('<li class="druid-list-item druid-review-item ui-li-has-thumb">' +'<img src="'+DS.user.data.avatar+'" class="avatar" />'+'<h4>'+DS.user.data.displayname+'</h4>'+ rating + DS.cache.review +'</li>');
+				$( ".druid-reviews").listview( "refresh" ); 
+				}
+			},
+			timeout: 10000,  // Timeout after 10 seconds
+			error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
+				$.mobile.loading( "hide" );
+				DS.onError(errorThrown);
+           	}
+		}).done(function() {
+			DS.playInputs();
+		});
 		}
-		
 	},
 	register: function(){		
 		var password = $('#pass-reg').val();	
@@ -208,8 +303,7 @@ var DS = {
 					DS.user.username = $('#user-reg').val();
 					var password = $('#pass-reg').val();	
 					var email = $('#email-reg').val();	
-					var register = DS.listen('register',DS.user.username,email, first.nonce, password);
-					alert('URL2: '+register)
+					var register = DS.listen('register',first.nonce,DS.user.username, password,email);
 					$.ajax({
 						type: 'GET',
 						url: register,
@@ -244,6 +338,7 @@ var DS = {
 	DS.user.username = $('#user-field').val();
 	var password = $('#pass-field').val();	
 	DS.pauseInputs('Authenticating');
+	if (nonce){
 		$.ajax({
 			type: 'GET',
 			url: nonce,
@@ -252,23 +347,28 @@ var DS = {
 				if (first.status !== 'ok'){
 					$('#login div.alert').html(first.error).show();					
 				} else {
-					var cookie = url+'/api/auth/generate_auth_cookie/?nonce='+first.nonce+'&username='+DS.user.username+'&password='+password+'';
+					var cookie = DS.listen('login',first.nonce,DS.user.username,password);
 					$.ajax({
 						type: 'GET',
 						url: cookie,
 						dataType: 'json',
-           				success: function(second) {
-							console.log(second);
-							if (second.status == 'ok'){								
-								DS.user.cookie = second.cookie;
-								DS.user.cookie_name = second.cookie_name;
-								DS.user.data = second.user;
-								$('#login div.alert').removeClass('alert-red').addClass('alert-success').html('<strong>Success!</strong>');
-								$('.user-block').html('<h3>Welcome Back, '+DS.user.data.displayname+'</h3><img src="'+DS.user.data.avatar+'" class="thumbnail" />');
-								$('.ui-btn-login').html('Profile');
+           				success: function(user) {
+							console.log(user);
+							if (user.status == 'ok'){
+								DS.setUser(user);
+								DS.user.data = user.user;								
+								$('.ui-btn-login').html('Profile').attr('href','#options').buttonMarkup({ icon: "user" });
+								if (DS.cache.full === true){
+									DS.postReview();
+									DS.cache.full = false;
+									$('#login .ui-content').html('<h3>Your Review Has been Submitted</h3>');
+								} else {
+									$('#login .ui-content').html('<h3>Welcome Back, '+DS.user.data.displayname+'</h3><img src="'+DS.user.data.avatar+'" class="thumbnail" />');
+								}
+								
 								
 							} else {
-								$('#login div.alert').html(second.error).show();
+								$('#login div.alert').html(user.error).show();
 								$('#user-field').val('');
 								$('#pass-field').val('');
 							}
@@ -291,6 +391,7 @@ var DS = {
 		}).done(function() {
 			DS.playInputs();
 		});
+	}
 	},
 	onError: function(text){
 		text = text || 'An Error Has Occured';
@@ -308,7 +409,10 @@ var DS = {
 			url += method+'/?count='+DS.query.count+'&offset='+DS.query.offset;
 			if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
 			if (DS.query.term !== '') url += '&type='+DS.query.term;
-			if (DS.query.search !== '') url += '&s='+DS.query.search;
+			//if (DS.query.search !== '') url += '&s='+DS.query.search;
+		}
+		if (method == 'get_category_posts'){			
+			url += 'get_posts/?count='+value2+'&type='+value+'&exclude='+DS.post.id;			
 		}
 		if (method == 'get_post'){
 			url += method+'/?id='+value;
@@ -319,8 +423,12 @@ var DS = {
 			url += method+'/?controller='+value+'&method='+value2;
 			return url;
 		}
+		if (method == 'login'){
+			url += 'auth/generate_auth_cookie/?nonce='+value+'&username='+value2+'&password='+value3;
+			return url;
+		}
 		if (method == 'register'){
-			url += 'user/'+method+'/?username='+value+'&email='+value2+'&nonce='+value3+'&display_name='+value+'&user_pass='+value4+'&notify=no';
+			url += 'user/'+method+'/?username='+value2+'&email='+value4+'&nonce='+value+'&display_name='+value2+'&user_pass='+value3+'&notify=no';
 			return url;
 		}
 		if (method == 'get_search_results'){
@@ -341,7 +449,6 @@ var DS = {
 	},
 	singleView: function(singleID){
 		var bark = DS.listen('get_post',singleID);
-		var mapStatic;
 		$.ajax({
 		type: 'GET',
 		url: bark,
@@ -361,7 +468,7 @@ var DS = {
 						markers: [{lat: latlng.lat(),lng: latlng.lng()}]
 					});
 					//DS.nearby = true;
-					//DS.geo.origin = [34.0544902,-118.4413104];
+					//DS.geo.origin = [DS.geo.lat,DS.geo.lng];
 					
 					if (DS.nearby){
 					directions = new GMaps({
@@ -386,7 +493,7 @@ var DS = {
 					});
 					directions.addMarker({
 						lat: latlng.lat(),
-						lng: latlng.lng(),
+						lng: latlng.lng()
 					});
 					directions.fitZoom();		
 					directions.drawRoute({
@@ -422,10 +529,11 @@ var DS = {
 				}
 			}
 			});	
+			DS.post.title = value.title;			
 			var reviews = DS.displayReview(value.rating);	
 			var cat = category = hours = openDay = website = theTime = '';
 			if (value.types.children.length !== 0) {
-				cat = value.types.children[0].term_id;
+				DS.post.category = cat = value.types.children[0].slug;
 				category = '<p class="category">'+value.types.children[0].name+'</p>';
 			}				
 			if (value.cast !== undefined){
@@ -445,20 +553,14 @@ var DS = {
 			var website = value.cast['mage_url'];
 			if (hours !== '') $("#listing-more").append('<li data-role="list-divider">Hours</li><li>'+hours+'</li>');
 			if (website !== '') $("#listing-more").append('<li data-role="list-divider">Website</li><li><a href="'+website+'">'+website+'</a></li>');
-			}
-			var sniffed = '<h2>'+value.title+'</h2>'+reviews+openDay+category;			
-			$(".entry-header").append(sniffed);	
+			}	
+			$(".entry-header").append('<h2>'+value.title+'</h2>'+reviews+openDay+category);	
 			$("#listing-about").append('<h2>About</h2><p>'+value.content+'</p>');
-			$("#listing-more").append('<li data-role="list-divider">About</li><li>'+value.content+'</li>');
-			$( "#listing-more" ).listview( "refresh" );
-			$("#tel a").attr("href", 'tel:'+value.listing.phone);
-			$("#tel a").append(' '+value.listing.phone);			
-			DS.showReviews(value.reviews);  
-			if (cat !== '') {
-				DS.query.count =3;
-				DS.query.term = cat;
-				DS.showRelated();     
-			}  
+			$("#listing-more").append('<li data-role="list-divider">About</li><li>'+value.content+'</li>').listview( "refresh" );
+			$("#tel a").attr("href", 'tel:'+value.listing.phone).append(' '+value.listing.phone);		
+			DS.post.reviews = value.reviews;
+			DS.showRelated(DS.post.category);
+			DS.showReviews(DS.post.reviews);  
             },
             timeout: 6000,  // Timeout after 6 seconds
             error: function(jqXHR, textStatus, errorThrown) {
@@ -473,7 +575,7 @@ var DS = {
 		$('a.ui-btn').addClass('ui-disabled');
 		$('input[type="text"], input[type="search"]').attr('disabled','disabled');
 		text = text || 'Sniffing Out Locations Near You';
-		if (DS.address.zip !== '') loadtext = 'Sniffing Out Locations Near '+DS.address.zip;
+		if (DS.address.zip !== '') text = 'Sniffing Out Locations Near '+DS.address.zip;
 		$.mobile.loading( "show", {
 			text: text,
 			textVisible: true,
@@ -483,23 +585,28 @@ var DS = {
 	},
 	playInputs: function (){
 		$('select').selectmenu('enable');
-		$('button').removeAttr('disabled','disabled');
+		$('button, a.ui-btn').removeAttr('disabled','disabled');
 		$('a.ui-btn').removeClass('ui-disabled');
 		$('input[type="text"], input[type="search"]').removeAttr('disabled','disabled');
 		$.mobile.loading( "hide" );
 	},
-	displayReview: function(rating,single){
+	displayReview: function(rating,single,count){
 		rating = rating || '';
 		if (rating === '') return '';
 		single = single || false;
-		if (single) return '<div class="average-rating"><div class="author-rating"><span style="width:'+rating+'%;"></span></div></div>';
-		var count = rating.review_count;
-		var reviews = '';
-		if (count > 1){
-			reviews += ' <div class="review-count">'+count+' reviews</div>';
-		} else if (count == 1){
-			reviews += '<div class="review-count">'+count+' review</div>';
+		count = count || false;
+		if (single) {
+			rating = rating*100/5;
+			return '<div class="single-rating"><div class="author-rating"><span style="width:'+rating+'%;"></span></div></div>';
 		}
+		var num = rating.review_count;
+		var reviews = '';
+		if (num > 1){
+			reviews += ' <div class="review-count">'+num+' reviews</div>';
+		} else if (num == 1){
+			reviews += '<div class="review-count">'+num+' review</div>';
+		}
+		if (count) return '<div class="author-rating"><span style="width:'+rating.rating+'%;"></span></div>'+reviews;
 		return '<div class="average-rating"><div class="author-rating"><span style="width:'+rating.rating+'%;"></span></div>'+reviews+'</div>';
 	},
 	displayImage: function(thumb){
@@ -514,7 +621,8 @@ var DS = {
 			url: whistle,
 			dataType: 'json',
             success: function( response ) {
-				var sniffed = '';							
+				var sniffed = '';
+				DS.query.posts = response.posts;				
         		$.each(response.posts, function(index, value) {
 					DS.query.offset += 1;
 					console.log(value);	
@@ -550,30 +658,56 @@ var DS = {
 			DS.playInputs();
 		});
     },
-    showRelated: function(whistle) {			
+	queryMap: function(map,query){
+		$.each(query, function(index, value) {
+			GMaps.geocode({
+				address: value.listing.street+', '+value.listing.city+', '+value.listing.zip,
+				callback: function(results, status) {
+					if (status == 'OK') {
+						var latlng = results[0].geometry.location;		
+						map.setCenter(latlng.lat(), latlng.lng());								
+						map.addMarker({
+							title:  value.title,
+							lat: latlng.lat(),
+							lng: latlng.lng(),
+							infoWindow: {
+								content: '<h2>'+value.title+'</h2>'+'<a href="tel:'+value.listing.phone+'" class="ui-btn ui-btn-icon-right ui-icon-phone">'+value.listing.phone+'</a><a href="single.html?id='+value.id+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">View Listing</a>'
+							}
+							//icon: "http://dogsniffer.com/wp-content/uploads/2013/03/favicon.png"
+						});
+						map.fitZoom();									
+					}
+				}
+			});	
+		});
+	},
+    showRelated: function(cat) {
+		if (cat === '') return '';
+		var whistle = DS.listen('get_category_posts',cat,3); 
+		console.log('Related:'+whistle);
         $.ajax({
 			type: 'GET',
 			url: whistle,
 			dataType: 'json',
             success: function( related ) {
-				var sniffed = '';					
+				var sniffed = '';		
+				console.log(related);
         		$.each(related.posts, function(index, value) {
-					DS.query.offset += 1;
-					console.log(sibling);
+					if (value.id != DS.post.id){
 					var reviews = DS.displayReview(value.rating);
 					var img = DS.displayImage(value.thumbnail);
 					var cat = (value.types.children.length !== 0)? '<p>'+value.types.children[0].name+'</p>': '';
-					sniffed = sniffed + '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
-			      	'<a href="single.html?id='+value.ID+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h2>'+value.title+'</h2>' + reviews +
+					sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
+			      	'<a href="single.html?id='+value.ID+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h4>'+value.title+'</h4>' + reviews +
 					'<p><strong>'+value.listing.street+', '+value.listing.city+'</strong></p>' + cat + '</a></li>';
+					}
 				 });
 				if (sniffed !== ''){
                 	$( ".druid-related" ).append(sniffed);
                		$( ".druid-related" ).listview( "refresh" );
 				} else {
-					$( ".contain-related" ).remove();
-				}
-                DS.playInputs();
+					$( ".druid-related-block" ).remove();
+				}                
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
@@ -583,19 +717,19 @@ var DS = {
     },
 	showReviews: function(reviews) {
      	var sniffed = '';	
-		//$( ".druid-reviews" ).append('<li data-role="list-divider">Reviews</li>');
         $.each(reviews, function(index, value) {
 			console.log(value);
 			var img = value.avatar;
 			var name = value.author;
-			var review = value.data.comment_content;
-			rating = value.rating*100/5;			
-			rating = DS.displayReview(rating,true);
-			sniffed += '<li class="druid-list-item row-fluid"><div class="span2">' +img+'<em>'+name+'</em></div><div class="span10">'+ rating + review +'</div></li>';
+			var review = value.data.comment_content;						
+			rating = DS.displayReview(value.rating,true);
+			sniffed += '<li class="druid-list-item druid-review-item ui-li-has-thumb">' +img+'<h4>'+name+'</h4>'+ rating + review +'</li>';
 		});
 		if (sniffed !== ''){
-			$( ".druid-reviews").find( "#submit-review" ).before(sniffed);
+			$( ".druid-reviews").append(sniffed);
 			$( ".druid-reviews").listview( "refresh" ); 
+		} else {
+			$( ".druid-reviews-title" ).hide();
 		}
     },
 	onDeviceReady: function() {
@@ -608,7 +742,7 @@ var DS = {
 	var latlng = new google.maps.LatLng(lat, lng);
 	DS.geo.lat = lat;
 	DS.geo.lng = lng;
-	DS.geo.origin = [lat, lng];
+	DS.geo.origin = [lat, lng];	
 	geocoder = new google.maps.Geocoder();
 	geocoder.geocode({'latLng': latlng}, function(results, status) {
 			console.log(results);
@@ -619,31 +753,30 @@ var DS = {
 						for (var b=0;b<results[0].address_components[i].types.length;b++) {		
 							if (results[0].address_components[i].types[b] == "administrative_area_level_1") {
 								city = results[0].address_components[i];															
-							if ($.inArray(city.long_name, DS.supported) !== -1){
-								DS.address.city = city.long_name;	
-								if (DS.address.city == 'Santa Barbara'){
-									DS.address.city_code = 'sb';
-								} else if (DS.address.city == 'San Francisco') {
-									DS.address.city_code = 'sf';
-								} else if (DS.address.city == 'Orange County') {
-									DS.address.city_code = 'oc';
-								}									
-							} else {
-								break;
-							}
+								if ($.inArray(city.long_name, DS.supported) !== -1){
+									DS.address.city = city.long_name;	
+									if (DS.address.city == 'Santa Barbara'){
+										DS.address.city_code = 'sb';
+									} else if (DS.address.city == 'San Francisco') {
+										DS.address.city_code = 'sf';
+									} else if (DS.address.city == 'Orange County') {
+										DS.address.city_code = 'oc';
+									}									
+								} else {
+									break;
+								}
 							}
 							if (results[0].address_components[i].types[b] == "postal_code") {
-								//DS.address.zip = results[0].address_components[i].long_name;	
-								//DS.nearby = true;
-								//$('#opt-zip').val(DS.address.zip);	
-								var add = results[0].address_components[0].long_name+' '+results[0].address_components[1].long_name;
-								$('#opt-add').val(add);	
+								DS.address.zip = results[0].address_components[i].long_name;	
+								DS.nearby = true;
+								$('#opt-zip').val(DS.address.zip);	
+								$('#opt-add').val(DS.address.full);	
 								break;
 							}
 						}
 					}				
 				} 			
-				DS.setSelect('#opt-city',DS.address.city_code);
+				DS.setSelect('#opt-city',DS.address.city_code);				
 				DS.showMore();		
 			} else {
 				alert("Geocoder failed due to: " + status);
@@ -679,11 +812,12 @@ var DS = {
     </head>
     <body>
 	<div data-role="page" id="home" class="page">
-	<div data-role="header" data-position="fixed">
-		<h1>Dog Sniffer</h1>
-		<a href="#options" data-role="button" data-icon="gear" class="ui-btn-right ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-right ui-icon-gear">Options</a>
-	</div>
-	<div role="main" class="ui-content">
+	<div data-role="header" data-position="fixed"><h1>Dog Sniffer</h1><form id="mageswitch">
+		<select name="open-map" id="open-map" data-role="flipswitch" data-wrapper-class="custom-size-flipswitch" data-theme="b">
+		<option value="list">List</option>
+		<option value="map" selected="">Map</option>
+		</select></form></div>
+	<div id="mage-list" role="main" class="ui-content">
 	<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange" data-theme="a" />
 	<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" data-theme="a" />
 	<select name="opt-category" id="opt-category" data-native-menu="false"><option data-placeholder="true">Categories</option>
@@ -697,77 +831,88 @@ var DS = {
 		<option value="travel">Travel</option>
     </select>
 	<ul class="druid-listings ui-corner-all ui-shadow" data-role="listview" data-inset="true">
-		<li id="show-more" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
+		<li id="show-more" data-theme="b" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
 	</ul>
 	</div>
-		<div data-role="footer" data-position="fixed" role="contentinfo">			
-			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
-			<div data-role="navbar">
-			<ul><li><a href="#" data-icon="home" class="ui-btn-active ui-btn">Nearby</a></li>
-				<li><a href="#register" data-rel="popup" data-icon="user"   data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user" data-transition="pop">Sign Up</a></li>
-				<li><a href="#login"  data-rel="popup" data-icon="lock"  data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Login</a></li>				
+	<div role="main" class="ui-content" id="mage-map" style="display:none;"></div>
+	<div data-role="footer" data-position="fixed" role="contentinfo">			
+		<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+		<div data-role="navbar">
+		<ul><li><a href="#" data-icon="home" class="ui-btn-active ui-btn">Nearby</a></li>
+			<li><a href="#login"  data-rel="popup" data-icon="lock"  data-position-to="window" class="ui-btn ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Sign In</a></li>		
+			<li><a href="#actions"  data-rel="popup" data-icon="bars" class="ui-btn ui-shadow ui-btn-inline ui-icon-bars" data-transition="slideup">Options</a></li>					
+		</ul>
+		</div>
+	</div>
+	<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
+		<h3>Search Options</h3>
+		<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
+			<option>Choose A City</option>
+			<option value="la">Los Angeles</option>
+			<option value="sb">Santa Barbara</option>
+			<option value="oc">Orange County</option>
+		</select>	
+		<input type="text" placeholder="Street" id="opt-add" name="opt-add" value="" data-clear-btn="true">			
+	</div>
+	<div data-role="popup" id="error">
+		<div role="main" class="ui-content">
+			<h3 class="ui-title"></h3>
+			<p></p>
+		</div>
+	</div>
+	<div data-role="popup" id="poo">
+		<a href="#" data-rel="back" data-theme="b" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+		<div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div>
+		<div role="main" class="ui-content">
+			<h3 class="ui-title"></h3>
+			<a href="#" id="expand" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-icon-left ui-btn-inline ui-icon-recycle"  data-icon="recycle">Expand Search</a>
+			<a href="#" id="research" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-icon-left ui-icon-delete" data-icon="delete">Clear All</a>
+		</div>
+	</div>		
+	</div>
+	<div data-role="popup" id="actions" data-theme="b">
+			<ul data-role="listview" data-inset="true" style="min-width:210px;">
+			<li data-role="list-divider">Options</li>
+			<li><a href="profile.html">Profile</a></li>
+			<li><a href="new.html">Add Listing</a></li>
+			<li><a href="#">My Listing</a></li>
+			<li><a href="#">Favourites</a></li>
 			</ul>
-			</div>
 		</div>
-		<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
-			<h3>Search Options</h3>
-			<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
-				<option>Choose A City</option>
-				<option value="la">Los Angeles</option>
-				<option value="sb">Santa Barbara</option>
-				<option value="oc">Orange County</option>
-			</select>	
-			<input type="text" placeholder="Street" id="opt-add" name="opt-add" value="" data-clear-btn="true">			
-		</div>
-		<div data-role="popup" id="login" data-theme="a" class="ui-corner-all">
+	<div data-role="popup" id="login" data-theme="a" class="ui-corner-all" style="min-width:300px;">
 		<div data-role="header" data-theme="a"><h1>Login</h1></div>
-		<form>
-		<div style="padding:10px 20px;">
+		
+		<div role="main" class="ui-content" style="padding:10px 20px;">
+			<form id="login-form">
 			<div class="alert alert-red login-alert" style="display:none;"></div>
 			<div class="user-block">
 			<label for="un" class="ui-hidden-accessible">Username:</label>
 			<input type="text" placeholder="Username" id="user-field" name="user-field" value="" data-theme="a">
 			<label for="pw" class="ui-hidden-accessible">Password:</label>
-			<input type="text" placeholder="Password" id="pass-field" name="pass-field" value="" data-theme="a">
+			<input type="password" placeholder="Password" id="pass-field" name="pass-field" value="" data-theme="a">
 			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-login">Sign in</button>
-			</div>			
-		</div>
-		</form>
-		</div>
-		<div data-role="popup" id="register" data-theme="a" class="ui-corner-all">
-		<div data-role="header" data-theme="a"><h1>Register</h1></div>
-		<form>
-		<div style="padding:10px 20px;">
+			</div>	
+			<h3>Don't Have an Account? No Problem!</h3>			
+			<a href="#" data-icon="user" id="open-register" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user ui-btn-icon-left">Sign Up</a>				
+			<a href="#" data-icon="info" id="open-password" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-info ui-btn-icon-right" data-transition="pop">Forgot Password?</a>		
+			</form>
+			<form id="register-form" style="display:none;">
 			<div class="alert alert-red register-alert" style="display:none;"></div>
 			<div class="user-block">
 			<label for="user-field" class="ui-hidden-accessible">Username:</label>
 			<input type="text" class="reg-field" placeholder="Username" id="user-reg" name="user-reg" value="" data-theme="a">
 			<label for="user-email" class="ui-hidden-accessible">E-mail:</label>
-			<input type="text" class="reg-field" placeholder="E-mail" id="email-reg" name="email-reg" value="" data-theme="a">
+			<input type="email" class="reg-field" placeholder="E-mail" id="email-reg" name="email-reg" value="" data-theme="a">
 			<label for="pw" class="ui-hidden-accessible">Password:</label>
-			<input type="text" class="reg-field" placeholder="Password" id="pass-reg" name="pass-reg" value="" data-theme="a">
+			<input type="password" class="reg-field" placeholder="Password" id="pass-reg" name="pass-reg" value="" data-theme="a">
 			<label for="pw" class="ui-hidden-accessible">Confirm Password:</label>
-			<input type="text" class="reg-field" placeholder="Confirm Password" id="pass-confirm" name="pass-confirm" value="" data-theme="a">
+			<input type="password" class="reg-field" placeholder="Confirm Password" id="pass-confirm" name="pass-confirm" value="" data-theme="a">
 			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-register">Sign Up</button>
-			</div>			
-		</div>
-		</form>
-		</div>
-		<div data-role="popup" id="error">
-			<div role="main" class="ui-content">
-				<h3 class="ui-title"></h3>
-				<p></p>
-			</div>
-		</div>
-		<div data-role="popup" id="poo">
-			 <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
-			<div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div>
-			<div role="main" class="ui-content">
-				<h3 class="ui-title"></h3>
-				<a href="#" id="expand" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-icon-left ui-btn-inline ui-icon-recycle"  data-icon="recycle">Expand Search</a>
-				<a href="#" id="research" data-role="button" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-btn-icon-left ui-icon-delete" data-icon="delete">Clear All</a>
-			</div>
-		</div>
+			</div>	
+			<h3>Already have an Account?</h3>			
+			<a href="#" id="open-login" data-icon="user" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user ui-btn-icon-left">Sign In</a>
+			</form>				
+		</div>		
 	</div>
     </body>
 </html>
