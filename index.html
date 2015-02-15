@@ -30,9 +30,9 @@
 		<link rel="stylesheet" href="css/jquery.mobile.icons.min.css" />
 		<link rel='stylesheet' href='css/jquery.mobile.structure-1.4.5.min.css' type='text/css' media='all' />
 		<link rel='stylesheet' href='druid.css' type='text/css' media='all' />
-		<link rel="stylesheet" type="text/css" href="css/index.css" />	
         <title>Dog Sniffer</title>		
 		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/modernizr.js"></script>
 		<script type="text/javascript" src="cordova.js"></script>
 		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
@@ -51,6 +51,9 @@ $( document ).on( "pagecreate", "#home", function() {
 	
 	$( "#login" ).enhanceWithin().popup();
 	$( "#actions" ).enhanceWithin().popup();
+	$( "#open-map" ).flipswitch().flipswitch('refresh');
+	DS.setSelect('#opt-category');
+	
 	var regSwitch = $( "#open-register" ),
         logSwitch = $( "#open-login" ),
 		passSwitch = $( "#open-password" ),
@@ -60,8 +63,7 @@ $( document ).on( "pagecreate", "#home", function() {
         registerForm = $( "#register-form" ),
 		passwordForm = $( "#password-form" ),
         loginForm = $( "#login-form" );
-	mapSwitch.selectmenu().selectmenu('refresh', true); 
-	DS.onDeviceReady();
+	
 	mapSwitch.on( "change", function( e ){
 		var toggleMap = $('#open-map').val();
 		if (toggleMap == 'list'){
@@ -86,7 +88,7 @@ $( document ).on( "pagecreate", "#home", function() {
 					map.setCenter(center.lat(), center.lng());
 				}
 			});	
-			DS.queryMap(map,DS.query.posts);
+			DS.queryMap(DS.query.posts);
        		mapList.hide();
 		} else {
 			mapList.show();
@@ -177,7 +179,7 @@ $( document ).on( "pagecreate", "#home", function() {
 		}
 		
 	});
-	
+	DS.onDeviceReady();
 });
 $( document ).on( "pagecreate", "#single", function() {
 	$( "#login" ).enhanceWithin().popup();
@@ -196,7 +198,7 @@ $( document ).on( "pagecreate", "#single", function() {
             var size = DS.scale( 480, 320, 0, 1 ),
                 w = size.width,
                 h = size.height;
-            $( "#mage-map" ).css( { "width" : w, "height" : h } );
+            $( "#mage-dir" ).css( { "width" : w, "height" : h } );
 			directions.refresh();
 			directions.idle();
 			directions.fitZoom();	
@@ -220,7 +222,7 @@ $( document ).on( "pagecreate", "#single", function() {
 var DS = {
 	address: {full:'',city:'Los Angeles',city_code: 'la', zip:'',state:'',street:'',county:''},
 	supported: ['Los Angeles','Orange County','Santa Barbara'],
-	query: {search: '',term: '',post_type: 'listing',count: 5,offset: 0},
+	query: {search: '',term: '',post_type: 'listing',count: 5,offset: 0,posts:[]},
 	geo: {origin:[],lat:'',lng:''},
 	single: {title:'',about:'',hours:'',website:''},
 	user: {cookie:'',cookie_name:'',username:'',title:'',about:'',hours:'',website:''},
@@ -228,7 +230,8 @@ var DS = {
 	post: {id:'',category:'',reviews:'',},
 	nearby: false,	
 	setSelect: function(target, value){
-		$(target).val(value).attr('selected', true).siblings('option').removeAttr('selected');
+		value = value || false;
+		if (value) $(target).val(value).attr('selected', true).siblings('option').removeAttr('selected');
 		$(target).selectmenu();
 		$(target).selectmenu("refresh", true);
 	},
@@ -400,6 +403,7 @@ var DS = {
 	},
 	refresh_list: function (){
 		$('.druid-list-item').remove();
+		DS.query.posts = [];
 		DS.query.offset = 0;
 	},
 	listen: function(method,value,value2,value3,value4){
@@ -467,12 +471,17 @@ var DS = {
 						lng: latlng.lng(),
 						markers: [{lat: latlng.lat(),lng: latlng.lng()}]
 					});
-					//DS.nearby = true;
-					//DS.geo.origin = [DS.geo.lat,DS.geo.lng];
+					
+					if (DS.nearby === false){
+						DS.geo.lat = 34.0544902;
+						DS.geo.lng = -118.4413104;
+						DS.nearby = true;
+					}
+					DS.geo.origin = [DS.geo.lat,DS.geo.lng];
 					
 					if (DS.nearby){
 					directions = new GMaps({
-						div: '#mage-map',
+						div: '#mage-dir',
 						lat: latlng.lat(),
 						lng: latlng.lat(),
 						disableDefaultUI: true,
@@ -489,7 +498,11 @@ var DS = {
 					});					
 					directions.addMarker({
 						lat: DS.geo.lat,
-						lng: DS.geo.lng
+						lng: DS.geo.lng,
+						infoWindow: {
+								content: '<h4>You are here.</h4>'
+						},
+						icon: 'img/origin.png'
 					});
 					directions.addMarker({
 						lat: latlng.lat(),
@@ -552,7 +565,7 @@ var DS = {
 			});
 			var website = value.cast['mage_url'];
 			if (hours !== '') $("#listing-more").append('<li data-role="list-divider">Hours</li><li>'+hours+'</li>');
-			if (website !== '') $("#listing-more").append('<li data-role="list-divider">Website</li><li><a href="'+website+'">'+website+'</a></li>');
+			if (website !== '') $("#listing-more").append('<li data-role="list-divider">Website</li><li><a href="#" onclick="window.open(\'http://'+website+'\', \'_system\');">'+website+'</a></li>');
 			}	
 			$(".entry-header").append('<h2>'+value.title+'</h2>'+reviews+openDay+category);	
 			$("#listing-about").append('<h2>About</h2><p>'+value.content+'</p>');
@@ -570,8 +583,9 @@ var DS = {
 		
 	},	
 	pauseInputs: function (text){
-		$('select').selectmenu('disable');
-		$('button, a.ui-btn').attr('disabled','disabled');
+		$('#opt-category').selectmenu('disable');
+		$('#open-map').flipswitch( "disable" );
+		$('button, ul li a.ui-btn').attr('disabled','disabled');
 		$('a.ui-btn').addClass('ui-disabled');
 		$('input[type="text"], input[type="search"]').attr('disabled','disabled');
 		text = text || 'Sniffing Out Locations Near You';
@@ -584,8 +598,9 @@ var DS = {
 		});	
 	},
 	playInputs: function (){
-		$('select').selectmenu('enable');
-		$('button, a.ui-btn').removeAttr('disabled','disabled');
+		$('#opt-category').selectmenu('enable');
+		$('#open-map').flipswitch( "enable" );
+		$('button, ul li a.ui-btn').removeAttr('disabled','disabled');
 		$('a.ui-btn').removeClass('ui-disabled');
 		$('input[type="text"], input[type="search"]').removeAttr('disabled','disabled');
 		$.mobile.loading( "hide" );
@@ -622,8 +637,8 @@ var DS = {
 			dataType: 'json',
             success: function( response ) {
 				var sniffed = '';
-				DS.query.posts = response.posts;				
         		$.each(response.posts, function(index, value) {
+					DS.query.posts.push(value);
 					DS.query.offset += 1;
 					console.log(value);	
 					var reviews = DS.displayReview(value.rating);
@@ -658,7 +673,7 @@ var DS = {
 			DS.playInputs();
 		});
     },
-	queryMap: function(map,query){
+	queryMap: function(query){
 		$.each(query, function(index, value) {
 			GMaps.geocode({
 				address: value.listing.street+', '+value.listing.city+', '+value.listing.zip,
@@ -812,15 +827,17 @@ var DS = {
     </head>
     <body>
 	<div data-role="page" id="home" class="page">
-	<div data-role="header" data-position="fixed"><h1>Dog Sniffer</h1><form id="mageswitch">
-		<select name="open-map" id="open-map" data-role="flipswitch" data-wrapper-class="custom-size-flipswitch" data-theme="b">
+	<div data-role="header" data-position="fixed"><h1>Dog Sniffer</h1>
+	<form id="flippos">
+		<select name="open-map" id="open-map" data-role="flipswitch" data-theme="b" data-corners="false">
 		<option value="list">List</option>
 		<option value="map" selected="">Map</option>
-		</select></form></div>
+		</select></form>
+	</div>
 	<div id="mage-list" role="main" class="ui-content">
 	<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange" data-theme="a" />
 	<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" data-theme="a" />
-	<select name="opt-category" id="opt-category" data-native-menu="false"><option data-placeholder="true">Categories</option>
+	<select name="opt-category" id="opt-category" data-native-menu="false" class="mage-select"><option data-placeholder="true">Categories</option>
 		<option value="all">All Categories</option>
 		<option value="activities">Activities</option>
 		<option value="dining">Dining</option>
@@ -846,13 +863,12 @@ var DS = {
 	</div>
 	<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
 		<h3>Search Options</h3>
-		<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange">
+		<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange mage-select">
 			<option>Choose A City</option>
 			<option value="la">Los Angeles</option>
 			<option value="sb">Santa Barbara</option>
 			<option value="oc">Orange County</option>
-		</select>	
-		<input type="text" placeholder="Street" id="opt-add" name="opt-add" value="" data-clear-btn="true">			
+		</select>		
 	</div>
 	<div data-role="popup" id="error">
 		<div role="main" class="ui-content">
@@ -873,10 +889,12 @@ var DS = {
 	<div data-role="popup" id="actions" data-theme="b">
 			<ul data-role="listview" data-inset="true" style="min-width:210px;">
 			<li data-role="list-divider">Options</li>
-			<li><a href="profile.html">Profile</a></li>
+			<!--<li><a href="profile.html">Profile</a></li>
 			<li><a href="new.html">Add Listing</a></li>
 			<li><a href="#">My Listing</a></li>
-			<li><a href="#">Favourites</a></li>
+			<li><a href="#">Favourites</a></li>-->
+			<li><a href="#options" data-role="button">Change City</a></li>
+			<li><a href="#" onclick="window.open('http://www.dogsniffer.com', '_system');">Browser App</a></li>
 			</ul>
 		</div>
 	<div data-role="popup" id="login" data-theme="a" class="ui-corner-all" style="min-width:300px;">
