@@ -32,7 +32,6 @@
 		<link rel='stylesheet' href='druid.css' type='text/css' media='all' />
         <title>Dog Sniffer</title>		
 		<script type="text/javascript" src="js/jquery.js"></script>
-		<script type="text/javascript" src="js/modernizr.js"></script>
 		<script type="text/javascript" src="cordova.js"></script>
 		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
@@ -643,13 +642,13 @@ var DS = {
 					console.log(value);	
 					var reviews = DS.displayReview(value.rating);
 					var img = DS.displayImage(value.thumbnail);
-					var cat = (value.types.children.length !== 0)? '<p>'+value.types.children[0].name+'</p>': '';
+					var cat = (value.types.children.length !== 0)? '<p class="item-cat">'+value.types.children[0].name+'</p>': '';
 
 					
 					sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
 			      	'<a href="single.html?id='+value.id+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h2>'+value.title+'</h2>';
 					sniffed += reviews;
-					sniffed += '<p><strong>'+value.listing.street+', '+value.listing.city+'</strong></p>';
+					sniffed += '<p class="item-address">'+value.listing.street+', '+value.listing.city+'</p>';
 					sniffed += cat;
 					sniffed += '</a></li>';
 				});
@@ -853,7 +852,6 @@ var DS = {
 	</div>
 	<div role="main" class="ui-content" id="mage-map" style="display:none;"></div>
 	<div data-role="footer" data-position="fixed" role="contentinfo">			
-		<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
 		<div data-role="navbar">
 		<ul><li><a href="#" data-icon="home" class="ui-btn-active ui-btn">Nearby</a></li>
 			<li><a href="#login"  data-rel="popup" data-icon="lock"  data-position-to="window" class="ui-btn ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Sign In</a></li>		

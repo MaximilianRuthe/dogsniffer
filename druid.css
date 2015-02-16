@@ -47,7 +47,6 @@ background-repeat: no-repeat;
 background-position: bottom center;
 background-attachment: fixed;
 background-color: #F4F4F2;
-box-sizing:border-box;
 }
 /************************************ END Defaults ************************************/
 .mage-map {background: white;padding: 10px;box-shadow: 0 0 10px #ccc;margin: 10px 0;border-radius: 2px;box-sizing:border-box;}
@@ -275,7 +274,7 @@ box-shadow: 0px 1px 3px rgba(0,0,0,0.3);
 .entry-map {font-weight: 600;font-size: 14px;line-height:20px;margin-top:20px;}
 .dist {float:right;font-size:14px;font-weight:400;text-align:right;}
 .dist-time {color: #5a9d00; font-weight:700;font-size:16px;}
-.ui-listview  > li h2 {margin-top:0; line-height: 1em;}
+.ui-listview  > li h2 {margin-top:0; line-height: 1em;font-size: 0.9em;}
 #single-map {width: 100%;height: 100%; padding: 0px !important;}
 .entry-header h2, .entry-header .average-rating {margin:10px 0 0;}
 .entry-header .average-rating {height:14px;}
@@ -300,7 +299,6 @@ border-bottom: 1px solid #ddd;
 padding-bottom: .2em;
 margin: 0 0 .7375em;}
 img.thumbnail, img.avatar{top:5px !important; left:5px !important;display: block;background-color: #fff;border-radius: 4px;box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;-moz-box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;-o-box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;-webkit-box-shadow:inset 0px 1px 1px #FAFAFA, 0px 1px 2px #585858;display:block;}
-#map-page, #home {width:100%; height:100%;}
 .ui-loader {background:url(img/loading.png) no-repeat top center;padding: 0 .625em;}
 .ui-loader-verbose .ui-icon-loading {opacity:0.3}
 #open-map {position: absolute;top: .24em;right: .4em;display: inline-block;vertical-align: middle;}
@@ -323,4 +321,6 @@ display: inline-block;
 vertical-align: middle;margin:0;}
 #flippos > .ui-flipswitch {margin: .2em 0;}
 .ui-flipswitch .ui-btn {font-size:16px;}
-#mage-map {padding:0;margin:0;box-sizing:border-box;}
+#mage-map {position:absolute;top: 0; bottom: 0; left:0; right:0;}
+.ui-listview>li p.item-address {font-weight:bold;}
+.ui-listview>li p.item-address, .ui-listview>li p.item-cat {margin:0.4em 0;}
