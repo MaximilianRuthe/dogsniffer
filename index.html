@@ -713,7 +713,7 @@ var DS = {
 					var img = DS.displayImage(value.thumbnail);
 					var cat = (value.types.children.length !== 0)? '<p>'+value.types.children[0].name+'</p>': '';
 					sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
-			      	'<a href="single.html?id='+value.ID+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h4>'+value.title+'</h4>' + reviews +
+			      	'<a href="single.html?id='+value.id+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h4>'+value.title+'</h4>' + reviews +
 					'<p><strong>'+value.listing.street+', '+value.listing.city+'</strong></p>' + cat + '</a></li>';
 					}
 				 });
