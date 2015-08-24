@@ -34,21 +34,26 @@
         <title>Dog Sniffer</title>		
 		<script type="text/javascript" src="js/jquery.js"></script>
 		<script type="text/javascript" src="cordova.js"></script>
+		<script type='text/javascript' src="analytics.js"></script>
 		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
-		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>		
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
 var directions;
 var page_title;
 var map;
 var authenticated;
+var gaDS;
 $(document).on('pagebeforeshow', "#single", function (event, data) {
+	var page_url = $(this).data("url");
     var parameters = $(this).data("url").split("?")[1];;
     DS.post.id = parameter = parameters.replace("id=",""); 
     DS.singleView(DS.post.id);	
+	window.analytics.trackView(page_url);
 });
 $( document ).on( "pagecreate", "#home", function() {
-	
+	var page_url = $(this).data("url");
+	window.analytics.trackView(page_url);
 	$( "#login" ).enhanceWithin().popup();
 	$( "#actions" ).enhanceWithin().popup();
 	$( "#open-map" ).flipswitch().flipswitch('refresh');
@@ -100,12 +105,19 @@ $( document ).on( "pagecreate", "#home", function() {
 		
     });
     regSwitch.on( "click", function( e ){
+		DS.hideForms();
 		registerForm.show();
-        loginForm.hide();
+		$(this).hide();
     });
     logSwitch.on( "click", function( e ){
+		DS.hideForms();
         loginForm.show();
-        registerForm.hide();
+		$(this).hide();
+    });	
+ 	passSwitch.on( "click", function( e ){
+       	DS.hideForms();
+		passwordForm.show();
+		$(this).hide();
     });	
     $( "#show-more a" ).on( "click", function( e ){        
         DS.showMore();
@@ -244,6 +256,11 @@ var DS = {
 		$( "#welcome" ).popup( "open" );
 		$(".login-button").remove();	
 		$('.footer-nav').append('<li><a href="#profile" data-icon="user">Profile</a></li>');				
+	},
+	hideForms: function(){
+		$('.user_form').hide();
+		$('.user_button').show();
+	
 	},
 	postReview: function(){
 		DS.cache.review = $('#review_text').val() || '';
@@ -396,6 +413,39 @@ var DS = {
 		});
 	}
 	},
+	forgotPassword: function(){
+	DS.user.username = $('#user-pass').val();
+	if (DS.user.username === '') {
+		 $('#password-form div.alert-red').html('Please provide your username to reset your password.').show();		
+	} else {
+	$('#password-form div.alert').hide();	
+	DS.pauseInputs('Authenticating');
+	var URL = DS.rollover('retrieve_password',DS.user.username);
+	if (URL){
+		console.log(URL);	
+		$.ajax({
+			type: 'GET',
+			url: URL,
+			dataType: 'json',
+            success: function(first) {
+				if (first.status !== 'ok'){
+					$('#password-form div.alert-red').html(first.error).show();					
+				} else {					
+					$('#password-form div.alert-success').html('A Password Reset Link has been sent to your E-mail.').show();			
+				}
+			},
+			timeout: 10000,  // Timeout after 10 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
+				$.mobile.loading( "hide" );
+				DS.onError(errorThrown);
+            }
+		}).done(function() {
+			DS.playInputs();
+		});
+	}
+	}
+	},
 	onError: function(text){
 		text = text || 'An Error Has Occured';
 		$( "#error p" ).html(text);
@@ -427,12 +477,17 @@ var DS = {
 			url += method+'/?controller='+value+'&method='+value2;
 			return url;
 		}
+		
 		if (method == 'login'){
 			url += 'auth/generate_auth_cookie/?nonce='+value+'&username='+value2+'&password='+value3;
 			return url;
 		}
 		if (method == 'register'){
 			url += 'user/'+method+'/?username='+value2+'&email='+value4+'&nonce='+value+'&display_name='+value2+'&user_pass='+value3+'&notify=no';
+			return url;
+		}
+		if (method == 'retrieve_password'){
+			url += 'user/'+method+'/?user_login='+value;
 			return url;
 		}
 		if (method == 'get_search_results'){
@@ -749,6 +804,7 @@ var DS = {
     },
 	onDeviceReady: function() {
 		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);     
+		window.analytics.startTrackerWithId('UA-17409167-3');		
 	},
 	onSuccess: function(position) {
 	var city = DS.address.city;
@@ -897,10 +953,9 @@ var DS = {
 			</ul>
 		</div>
 	<div data-role="popup" id="login" data-theme="a" class="ui-corner-all" style="min-width:300px;">
-		<div data-role="header" data-theme="a"><h1>Login</h1></div>
-		
+		<div data-role="header" data-theme="a"><h1>Login</h1></div>		
 		<div role="main" class="ui-content" style="padding:10px 20px;">
-			<form id="login-form">
+			<form class="user_form" id="login-form">
 			<div class="alert alert-red login-alert" style="display:none;"></div>
 			<div class="user-block">
 			<label for="un" class="ui-hidden-accessible">Username:</label>
@@ -908,12 +963,9 @@ var DS = {
 			<label for="pw" class="ui-hidden-accessible">Password:</label>
 			<input type="password" placeholder="Password" id="pass-field" name="pass-field" value="" data-theme="a">
 			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-login">Sign in</button>
-			</div>	
-			<h3>Don't Have an Account? No Problem!</h3>			
-			<a href="#" data-icon="user" id="open-register" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user ui-btn-icon-left">Sign Up</a>				
-			<a href="#" data-icon="info" id="open-password" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-info ui-btn-icon-right" data-transition="pop">Forgot Password?</a>		
+			</div>				
 			</form>
-			<form id="register-form" style="display:none;">
+			<form  class="user_form" id="register-form" style="display:none;">
 			<div class="alert alert-red register-alert" style="display:none;"></div>
 			<div class="user-block">
 			<label for="user-field" class="ui-hidden-accessible">Username:</label>
@@ -925,10 +977,22 @@ var DS = {
 			<label for="pw" class="ui-hidden-accessible">Confirm Password:</label>
 			<input type="password" class="reg-field" placeholder="Confirm Password" id="pass-confirm" name="pass-confirm" value="" data-theme="a">
 			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-register">Sign Up</button>
+			</div>			
+			</form>
+			<form  class="user_form" id="password-form" style="display:none;">
+			<h5>Please enter your username to receive a link to create a new password via email.</h5>
+			<div class="alert alert-success password-alert" style="display:none;"></div>
+			<div class="alert alert-red password-alert" style="display:none;"></div>
+			<div class="user-block">
+			<label for="user-field" class="ui-hidden-accessible">Username:</label>
+			<input type="text" class="forpass-field" placeholder="Username" id="user-pass" name="user-pass" value="" data-theme="a">
+			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-password">Get New Password</button>
 			</div>	
-			<h3>Already have an Account?</h3>			
-			<a href="#" id="open-login" data-icon="user" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user ui-btn-icon-left">Sign In</a>
-			</form>				
+			</form>		
+			<h3>Don't Have an Account? No Problem!</h3>			
+			<a href="#" data-icon="user" id="open-register" class="user_button ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user ui-btn-icon-left">Sign Up</a>
+			<a href="#" id="open-login" data-icon="home" class="user_button ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user ui-btn-icon-right" style="display:none;">Sign In</a>
+			<a href="#" data-icon="info" id="open-password" class="user_button ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-info ui-btn-icon-right" data-transition="pop">Forgot Password?</a>		
 		</div>		
 	</div>
     </body>
