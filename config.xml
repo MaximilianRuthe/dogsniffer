@@ -7,8 +7,6 @@
     <author email="support@dogsniffer.com" href="http://dogsniffer.com">
         Dog Sniffer Team
     </author>
-	<gap:plugin name="com.danielcwilson.plugins.googleanalytics" />
-	<!--gap:plugin name="com.adobe.plugins.gaplugin" /-->
 	<gap:plugin name="com.phonegap.plugin.statusbar" version="1.1.0" />
 	<gap:plugin name="org.apache.cordova.battery-status" version="0.2.11" />
 	<gap:plugin name="org.apache.cordova.camera" version="0.3.2" />
