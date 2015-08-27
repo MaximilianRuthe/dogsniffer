@@ -34,18 +34,34 @@
         <title>Dog Sniffer</title>		
 		<script type="text/javascript" src="js/jquery.js"></script>
 		<script type="text/javascript" src="cordova.js"></script>
-		<!--<script type='text/javascript' src="analytics.js"></script> -->
+		<script type="text/javascript" src="GAPlugin.js"></script>
 		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>		
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
+	// GAplugin #1 
+	var gaPlugin;
+	function nativePluginResultHandler (result) {
+		//alert('nativePluginResultHandler - '+result);
+		console.log('nativePluginResultHandler: '+result);
+	}        
+	function nativePluginErrorHandler (error) {
+		//alert('nativePluginErrorHandler - '+error);
+		console.log('nativePluginErrorHandler: '+error);
+	}
+	function TrackButtonClicked() {
+		gaPlugin.trackEvent( nativePluginResultHandler, nativePluginErrorHandler, "Button", "Click", "Testing Click", 1);
+	}
+	
+	// GAplugin #2 - end
 var directions;
 var page_title;
 var map;
 var authenticated;
 $(document).on('pagebeforeshow', "#single", function (event, data) {
 	var page_url = $(this).data("url");
-    var parameters = $(this).data("url").split("?")[1];;
+	gaPlugin.trackEvent( nativePluginResultHandler, nativePluginErrorHandler, "Single", "Page", page_url, 1);
+    var parameters = $(this).data("url").split("?")[1];
     DS.post.id = parameter = parameters.replace("id=",""); 
     DS.singleView(DS.post.id);	
 	//window.analytics.trackView(page_url);
@@ -807,7 +823,9 @@ var DS = {
     },
 	onDeviceReady: function() {
 		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);     
-		//window.analytics.startTrackerWithId('UA-17409167-3');		
+		//window.analytics.startTrackerWithId('UA-17409167-3');
+		gaPlugin = window.plugins.gaPlugin;
+		gaPlugin.init(nativePluginResultHandler, nativePluginErrorHandler, "UA-17409167-4", 10);
 	},
 	onSuccess: function(position) {
 	var city = DS.address.city;
@@ -882,15 +900,6 @@ var DS = {
         }
     }	
 };
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','analytics.js','ga');
-var ua = 'UA-17409167-3';
-    ga('create', ua, {'storage': 'none','clientId': device.uuid});
-	ga('set','checkProtocolTask',null);
-	ga('set','checkStorageTask',null);
-    ga('send', 'pageview', {'page': '/home'});   
 	</script>
     </head>
     <body>
