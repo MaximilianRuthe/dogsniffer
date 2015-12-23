@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2014 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <!--<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=0" />	
+		<link rel="stylesheet" href="css/magecast.min.css" />
+		<link rel="stylesheet" href="css/jquery.mobile.icons.min.css" />
+		<link rel='stylesheet' href='css/jquery.mobile.structure-1.4.5.min.css' type='text/css' media='all' />
+		<link rel='stylesheet' href='druid.css' type='text/css' media='all' />
+        <title>Dog Sniffer</title>		
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="cordova.js"></script>
+		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+		<script type='text/javascript' src='js/gmaps.js'></script>
+    </head>
+    <body>
+<div data-role="page" id="calendar" class="page calendar ui-responsive-panel">
+	<div data-role="header" data-position="fixed" id="single-header">
+		<a href="#" data-role="button" data-icon="gear" data-rel="back" data-theme="b" class="ui-btn-b ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-left ui-icon-carat-l">Back</a>
+		<h1>Dog Sniffer</h1>
+		<a href="#event-list" data-role="button" data-icon="bullets" data-iconpos="notext" data-theme="b" class="ui-btn-b ui-corner-all ui-btn-inline ui-btn-mini ui-btn-right">List</a>
+	</div>
+	<div role="main" class="ui-content" id="calendar-container"><h2 class="calendar-month"></h2>
+	</div>	
+	<div data-role="panel" id="event-list" data-position="right" data-dismissible="false" data-display="push" class="ui-panel ui-panel-position-right ui-panel-display-overlay ui-body-a ui-panel-animate ui-panel-open">
+	<div class="ui-panel-inner"><h3>Upcoming Events</h3></div>
+	<ul data-role="listview" data-inset="false" id="mage-events"><li data-icon="delete" id="close-event-panel" class="ui-last-child"><a href="#" data-rel="close" class="ui-btn ui-shadow ui-corner-all ui-btn-a ui-icon-delete ui-btn-icon-left ui-btn-inline">Close</a></li></ul>	
+	</div>
+	<div data-role="footer" data-position="fixed" role="contentinfo">			
+			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+			<div data-role="navbar">
+			<ul><li><a href="index.html" data-icon="home" class="ui-btn-active ui-btn">Nearby</a></li>
+				<li><a href="#register" data-rel="popup" data-icon="user"   data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-user" data-transition="pop">Sign Up</a></li>
+				<li><a href="#login"  data-rel="popup" data-icon="lock"  data-position-to="window" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Login</a></li>				
+			</ul>
+			</div>
+	</div>
+</div>
+    </body>
+</html>

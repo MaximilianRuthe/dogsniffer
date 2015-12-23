@@ -1,3 +1,4 @@
+<?php if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') { ?>
 <!DOCTYPE html>
 <!--
     Copyright (c) 2012-2014 Adobe Systems Incorporated. All rights reserved.
@@ -25,8 +26,10 @@
         <meta name="format-detection" content="telephone=no" />
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />	
+        <!--<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />-->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=0" />	
 		<link rel="stylesheet" href="css/magecast.min.css" />
+		<link rel="stylesheet" href="css/glyphicons.min.css" />
 		<link rel="stylesheet" href="css/jquery.mobile.icons.min.css" />
 		<link rel='stylesheet' href='css/jquery.mobile.structure-1.4.5.min.css' type='text/css' media='all' />
 		<link rel='stylesheet' href='druid.css' type='text/css' media='all' />
@@ -35,9 +38,11 @@
 		<script type="text/javascript" src="cordova.js"></script>
 		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
 		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+		<script type='text/javascript' src="js/GAPlugin.js"></script>
 		<script type='text/javascript' src='js/gmaps.js'></script>
     </head>
     <body>
+<?php } ?>
 <div data-role="page" id="single" class="page">
 	<div data-role="header" data-position="fixed" id="single-header">
 		<a href="#" data-role="button" data-icon="gear" data-rel="back" data-theme="b" class="ui-btn-b ui-btn-left ui-btn ui-btn-inline ui-mini ui-corner-all ui-btn-icon-left ui-icon-carat-l">Back</a>
@@ -55,6 +60,7 @@
 		</div>
 		<div class="entry-content">
 		<ul data-role="listview" data-inset="true">
+		<li data-icon="star"><a href="#review" data-rel="popup" data-position-to="window" data-transition="pop">Add Review</a></li>
 		<li data-icon="location" class="page-directions"><a href="#map-pop"  data-position-to="window" data-rel="popup" data-transition="pop">Directions</a></li><li data-icon="phone" class="page-call" id="tel"><a href="#">Call</a></li></ul>
 		<div data-role="collapsible" class="druid-collapse"><h4>More Info</h4><ul data-role="listview" id="listing-more"></ul></div>
 		<div class="druid-related-block"><h3 class="druid-title">Similar Listings</h3><ul class="druid-related" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow"></ul></div>
@@ -62,16 +68,6 @@
 		<ul class="druid-reviews" data-role="listview" data-inset="true" class="ui-corner-all ui-shadow" data-collapsed-icon="star" data-expanded-icon="forward"></ul>
 		</div>
 	</div>	
-	<div data-role="footer" data-position="fixed" role="contentinfo">			
-			<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
-			<div data-role="navbar">
-			<ul><li><a href="#" data-icon="home" class="ui-btn-active ui-btn">Nearby</a></li>
-				<li><a href="#review" data-rel="popup" data-icon="star"   data-position-to="window" class="ui-btn  ui-shadow ui-btn-inline ui-icon-star" data-transition="pop">Add Review</a></li>
-				<li><a href="#login"  data-rel="popup" data-icon="lock"  data-position-to="window" class="ui-btn ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Sign In</a></li>		
-				<li><a href="#actions"  data-rel="popup" data-icon="bars" class="ui-btn ui-shadow ui-btn-inline ui-icon-bars" data-transition="slideup">Options</a></li>			
-			</ul>
-			</div>
-	</div>
 	<div data-role="popup" id="review">
 		 <a href="#" data-rel="back" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
 		<div data-role="header" data-theme="a"><h1>Review This Listing</h1></div>
@@ -105,5 +101,16 @@
 		</div>
 	</div>
 </div>
+<?php if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') { ?>
+	<div data-role="footer" data-position="fixed" role="contentinfo" data-theme="a">	
+		<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+		<div data-role="navbar">
+		<ul><li><a href="index.html" data-icon="home" id="home-btn" class="ui-btn-active ui-state-persist ui-btn" data-title="Dog Sniffer">Nearby</a></li>
+			<li><a href="#login"  data-rel="popup" id="profile-btn" data-icon="lock"  data-position-to="window" class="ui-btn ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Sign In</a></li>		
+			<li><a href="#actions"  data-rel="popup" data-icon="bars" class="ui-btn ui-shadow ui-btn-inline ui-icon-bars" data-transition="slideup">Options</a></li>					
+		</ul>
+		</div>
+	</div>	
     </body>
 </html>
+<?php } ?>

@@ -28,49 +28,32 @@
         <!--<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />-->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, target-densitydpi=medium-dpi, user-scalable=0" />	
 		<link rel="stylesheet" href="css/magecast.min.css" />
+		<link rel="stylesheet" href="css/glyphicons.min.css" />
 		<link rel="stylesheet" href="css/jquery.mobile.icons.min.css" />
 		<link rel='stylesheet' href='css/jquery.mobile.structure-1.4.5.min.css' type='text/css' media='all' />
 		<link rel='stylesheet' href='druid.css' type='text/css' media='all' />
         <title>Dog Sniffer</title>		
 		<script type="text/javascript" src="js/jquery.js"></script>
 		<script type="text/javascript" src="cordova.js"></script>
-		<script type="text/javascript" src="GAPlugin.js"></script>
 		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
-		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>		
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
-	// GAplugin #1 
-	var gaPlugin;
-	function nativePluginResultHandler (result) {
-		//alert('nativePluginResultHandler - '+result);
-		console.log('nativePluginResultHandler: '+result);
-	}        
-	function nativePluginErrorHandler (error) {
-		//alert('nativePluginErrorHandler - '+error);
-		console.log('nativePluginErrorHandler: '+error);
-	}
-	function TrackButtonClicked() {
-		gaPlugin.trackEvent( nativePluginResultHandler, nativePluginErrorHandler, "Button", "Click", "Testing Click", 1);
-	}
-	
-	// GAplugin #2 - end
 var directions;
 var page_title;
 var map;
 var authenticated;
+var today = new Date();
+var pictureSource; // picture source
+var destinationType; // sets the format of returned value 
 $(document).on('pagebeforeshow', "#single", function (event, data) {
-	var page_url = $(this).data("url");
-	gaPlugin.trackEvent( nativePluginResultHandler, nativePluginErrorHandler, "Single", "Page", page_url, 1);
-    var parameters = $(this).data("url").split("?")[1];
+    var parameters = $(this).data("url").split("?")[1];;
     DS.post.id = parameter = parameters.replace("id=",""); 
-    DS.singleView(DS.post.id);	
-	//window.analytics.trackView(page_url);
+    DS.singleView(DS.post.id,'listing');	
 });
 $( document ).on( "pagecreate", "#home", function() {
-	var page_url = $(this).data("url");
-	//window.analytics.trackView(page_url);
-	$( "#login" ).enhanceWithin().popup();
-	$( "#actions" ).enhanceWithin().popup();
+	DS.init();	
+	$("#home-btn").addClass( "ui-btn-active" );
 	$( "#open-map" ).flipswitch().flipswitch('refresh');
 	DS.setSelect('#opt-category');
 	
@@ -119,6 +102,12 @@ $( document ).on( "pagecreate", "#home", function() {
 	mapSwitch.on( "click", function( e ){
 		
     });
+	$('.druid-events').on("click",".mage-list-item ",function(){
+		//e.preventDefault();
+		$(this).parent().parent().find('.active').removeClass('active');
+		$(this).addClass('active');			
+		$('.druid-listings').trigger( "updatelayout" );
+	});
     regSwitch.on( "click", function( e ){
 		DS.hideForms();
 		registerForm.show();
@@ -134,7 +123,7 @@ $( document ).on( "pagecreate", "#home", function() {
 		passwordForm.show();
 		$(this).hide();
     });	
-    $( "#show-more a" ).on( "click", function( e ){        
+    $( "#more-listings a" ).on( "click", function( e ){        
         DS.showMore();
         e.preventDefault();
     });	
@@ -212,8 +201,49 @@ $( document ).on( "pagecreate", "#home", function() {
 	});
 	DS.onDeviceReady();
 });
+$( document ).on( "pagecreate", "#dogs", function() {
+DS.init();
+$("#profile-btn").addClass( "ui-btn-active" );
+DS.showDogs();
+$('.submit-dog').on( "click", function( e ){
+		e.preventDefault();
+		DS.addDog();
+	});	
+$('#snapDog').on("click",function(){
+		DS.capturePhoto();
+	});
+});
+$( document ).on( "pagecreate", "#listings", function() {
+DS.showListings();
+DS.init();
+$("#profile-btn").addClass( "ui-btn-active" );
+$('.submit-listing').on( "click", function( e ){
+		e.preventDefault();
+		//DS.addListing();
+	});	
+});
+$( document ).on( "pagecreate", "#calendar", function() {	
+	DS.showCalendar();
+	DS.init();
+	$('#calendar-container').on("click",".event-day",function(){
+		//e.preventDefault();
+		$('.event-titles').hide("fast");
+		var dayNum = $(this).find('span').html();		
+		$("#event-list").panel( "open" );	
+		$('.day-'+dayNum).fadeToggle("fast");
+		$(this).parent().parent().parent().find('.active').removeClass('active');
+		$(this).addClass('active');			
+		$('#event-list').trigger( "updatelayout" );
+	});
+	$('#event-list').on("click",".mage-list-item ",function(){
+		//e.preventDefault();
+		$(this).parent().parent().find('.active').removeClass('active');
+		$(this).addClass('active');			
+		$('#event-list').trigger( "updatelayout" );
+	});
+});
 $( document ).on( "pagecreate", "#single", function() {
-	$( "#login" ).enhanceWithin().popup();
+	DS.init();
 	DS.query.search = '';
 	var stickyOffset = 40;
 	$(document).on('scrollstart', function(){ 
@@ -253,10 +283,11 @@ $( document ).on( "pagecreate", "#single", function() {
 var DS = {
 	address: {full:'',city:'Los Angeles',city_code: 'la', zip:'',state:'',street:'',county:''},
 	supported: ['Los Angeles','Orange County','Santa Barbara'],
-	query: {search: '',term: '',post_type: 'listing',count: 5,offset: 0,posts:[]},
+	query: {search: '',term: '',post_type: 'listing',count: 3,offset: 0,posts:[]},
+	events: {search: '',term: '',post_type: 'event',count: 3,offset: 0,posts:[]},
 	geo: {origin:[],lat:'',lng:''},
 	single: {title:'',about:'',hours:'',website:''},
-	user: {cookie:'',cookie_name:'',username:'',title:'',about:'',hours:'',website:''},
+	user: {cookie:'',cookie_name:'',username:'',title:'',about:'',hours:'',website:'',id:''},
 	cache: {review:'',rating:'',full:false},
 	post: {id:'',category:'',reviews:'',},
 	nearby: false,	
@@ -269,9 +300,11 @@ var DS = {
 	setUser: function(user){
 		DS.user.cookie = user.cookie;
 		DS.user.cookie_name = user.cookie_name;
+		
 		DS.user.data = user.user;
-		$( "#welcome h3" ).html('Welcome Back, '+DS.user.data.displayname);
-		$( "#welcome p" ).html('<img src="'+DS.user.data.avatar+'" class="thumbnail" />');
+		DS.user.id = user.user.id;
+		$( "#welcome h3" ).html('Welcome Back, '+user.user.displayname);
+		$( "#welcome p" ).html('<img src="'+user.user.avatar+'" class="thumbnail" />');
 		$( "#welcome" ).popup( "open" );
 		$(".login-button").remove();	
 		$('.footer-nav').append('<li><a href="#profile" data-icon="user">Profile</a></li>');				
@@ -293,7 +326,7 @@ var DS = {
 			DS.cache.full = true;
 			$('#login div.alert').html('You have to be Signed In to Submit a Review.').show();
 		} else {
-			var whistle = DS.listen('post_comment',DS.cache.review,DS.cache.rating) || '';
+			var whistle = DS.rollover('post_comment',DS.cache.review,DS.cache.rating) || '';
 			DS.pauseInputs('Barking your Review');
 		$.ajax({
 			type: 'GET',
@@ -324,11 +357,64 @@ var DS = {
 		});
 		}
 	},
+	addDog: function(){		
+		var dog_name = $('#dog_name').val();	
+		var dog_dob = $('#dog_dob').val();
+		var dog_breed = $('#dog_breed').val();	
+		var dog_weight = $('#dog_weight').val();	
+		var dog_content = $('#dog_content').val();	
+		var dog_attachment= $('#dog_pic').val();	
+		var nonce = DS.rollover('get_nonce','posts','create_post');	
+		if (dog_name !== '' && dog_content !== ''){
+		
+		
+		alert('URL: '+nonce);
+		DS.pauseInputs('Adding Dog');
+		$.ajax({
+			type: 'GET',
+			url: nonce,
+			dataType: 'json',
+            success: function(howl) {
+				console.log(howl);
+				if (howl.status !== 'ok'){
+				
+				} else {
+					var fin = DS.howl('create_dog',howl.nonce,dog_name,dog_content);	
+					$.ajax({
+						type: 'GET',
+						url: fin,
+						dataType: 'json',
+           				success: function(second) {
+							console.log(second);
+							if (second.status == 'ok'){		
+							}
+						},
+						timeout: 10000,  // Timeout after 10 seconds
+           				error: function(jqXHR, textStatus, errorThrown) {
+                			console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
+							$.mobile.loading( "hide" );
+							DS.onError(errorThrown);
+           				}
+					});					
+								
+					
+				}
+			},
+			timeout: 10000,  // Timeout after 10 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
+				$.mobile.loading( "hide" );
+				DS.onError(errorThrown);
+            }
+		}).done(function() {
+			DS.playInputs();
+		});
+		}
+	},
 	register: function(){		
 		var password = $('#pass-reg').val();	
 		var conf = $('#pass-confirm').val();	
-		var nonce = DS.listen('get_nonce','user','register');	
-		alert('URL: '+nonce);
+		var nonce = DS.rollover('get_nonce','user','register');	
 		DS.pauseInputs('Joining the Pack');
 		$.ajax({
 			type: 'GET',
@@ -342,14 +428,17 @@ var DS = {
 					DS.user.username = $('#user-reg').val();
 					var password = $('#pass-reg').val();	
 					var email = $('#email-reg').val();	
-					var register = DS.listen('register',first.nonce,DS.user.username, password,email);
+					var register = DS.rollover('register',first.nonce,DS.user.username, password,email);
 					$.ajax({
 						type: 'GET',
 						url: register,
 						dataType: 'json',
            				success: function(second) {
 							console.log(second);
-							if (second.status == 'ok'){		
+							if (second.status !== 'ok'){	
+							
+							} else {
+								$('#register-form').html('<h3>Success!</h3><p>Press <strong>Sign In</strong> below to login using your new username and password.</p>');
 							}
 						},
 						timeout: 10000,  // Timeout after 10 seconds
@@ -372,8 +461,17 @@ var DS = {
 		});
 		
 	},
+	init: function(){
+		$( "#login" ).enhanceWithin().popup();
+		$( "#actions" ).enhanceWithin().popup();
+		$( "body>[data-role='popup']" ).popup();
+		$( "body>[data-role='panel']" ).panel();
+		$( ".user-options").listview();
+		$( "[data-role='header'], [data-role='footer']" ).toolbar();
+		$( "[data-role='navbar'] a.ui-btn-active" ).removeClass( "ui-btn-active" );
+	},
 	login: function(){
-	var nonce = DS.listen('get_nonce');
+	var nonce = DS.rollover('get_nonce');
 	DS.user.username = $('#user-field').val();
 	var password = $('#pass-field').val();	
 	DS.pauseInputs('Authenticating');
@@ -386,7 +484,7 @@ var DS = {
 				if (first.status !== 'ok'){
 					$('#login div.alert').html(first.error).show();					
 				} else {
-					var cookie = DS.listen('login',first.nonce,DS.user.username,password);
+					var cookie = DS.rollover('login',first.nonce,DS.user.username,password);
 					$.ajax({
 						type: 'GET',
 						url: cookie,
@@ -394,15 +492,16 @@ var DS = {
            				success: function(user) {
 							console.log(user);
 							if (user.status == 'ok'){
-								DS.setUser(user);
-								DS.user.data = user.user;								
-								$('.ui-btn-login').html('Profile').attr('href','#options').buttonMarkup({ icon: "user" });
+								DS.setUser(user);							
+								$('.ui-btn-login').html('Profile').attr('href','#options').buttonMarkup({ icon: "user" });					
 								if (DS.cache.full === true){
 									DS.postReview();
 									DS.cache.full = false;
 									$('#login .ui-content').html('<h3>Your Review Has been Submitted</h3>');
 								} else {
-									$('#login .ui-content').html('<h3>Welcome Back, '+DS.user.data.displayname+'</h3><img src="'+DS.user.data.avatar+'" class="thumbnail" />');
+									$('#login .ui-content').html('<div class="me"><img src="'+DS.user.data.avatar+'" class="thumbnail" /><h4>Welcome Back, <strong>'+DS.user.data.displayname+'</strong></h4></div>');
+									$('#options .me').html('<img src="'+DS.user.data.avatar+'" class="thumbnail" /><h3>'+DS.user.data.displayname+'</h3>');
+									
 								}
 								
 								
@@ -439,7 +538,7 @@ var DS = {
 	} else {
 	$('#password-form div.alert').hide();	
 	DS.pauseInputs('Authenticating');
-	var URL = DS.listen('retrieve_password',DS.user.username);
+	var URL = DS.rollover('retrieve_password',DS.user.username);
 	if (URL){
 		console.log(URL);	
 		$.ajax({
@@ -471,24 +570,20 @@ var DS = {
 		$( "#error" ).popup( "open" );  
 	},
 	refresh_list: function (){
-		$('.druid-list-item').remove();
+		$('.druid-listing').remove();
 		DS.query.posts = [];
 		DS.query.offset = 0;
+		DS.events.posts = [];
+		DS.events.offset = 0;
+		
 	},
-	listen: function(method,value,value2,value3,value4){
+	rollover: function(method,value,value2,value3,value4){
 		var url = 'http://dogsniffer.com/'+DS.address.city_code+'/api/';
-		method = method || 'get_posts';
-		if (method == 'get_posts'){			
-			url += method+'/?count='+DS.query.count+'&offset='+DS.query.offset;
-			if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
-			if (DS.query.term !== '') url += '&type='+DS.query.term;
-			//if (DS.query.search !== '') url += '&s='+DS.query.search;
-		}
-		if (method == 'get_category_posts'){			
-			url += 'get_posts/?count='+value2+'&type='+value+'&exclude='+DS.post.id;			
-		}
-		if (method == 'get_post'){
-			url += method+'/?id='+value;
+		method = method || 'get_posts';		
+		if (value2 =='create_dog') url = 'http://dogsniffer.com/api/';
+		if (method == 'create_post'){
+		
+		
 		}
 		if (method == 'get_nonce'){
 			value = value || 'auth';
@@ -496,7 +591,6 @@ var DS = {
 			url += method+'/?controller='+value+'&method='+value2;
 			return url;
 		}
-		
 		if (method == 'login'){
 			url += 'auth/generate_auth_cookie/?nonce='+value+'&username='+value2+'&password='+value3;
 			return url;
@@ -508,10 +602,7 @@ var DS = {
 		if (method == 'retrieve_password'){
 			url += 'user/'+method+'/?user_login='+value;
 			return url;
-		}
-		if (method == 'get_search_results'){
-			url += method+'/?search='+value;
-		}
+		}		
 		if (method == 'post_comment'){
 			var cookie = DS.user.cookie;
 			var id = DS.post.id;
@@ -519,8 +610,179 @@ var DS = {
 			url += 'user/'+method+'/?cookie='+cookie+'&post_id='+id+'&content='+value+'&comment_status=1&rating='+value2;
 			return url;
 		}
-		if (DS.query.post_type !== ''){
-			url += '&post_type='+DS.query.post_type;
+		console.log(url);
+		return url;	
+	},
+	howl: function(method,nonce,title,content,attachment){
+		var url = 'http://dogsniffer.com/';
+		method = method || 'get_dogs';
+		if (method == 'create_dog'){
+			url += 'api/create_post/?nonce='+nonce;
+			url += '&type=dog';
+			url += '&title='+title;
+			url += '&status=publish';
+			url += '&author='+DS.user.username;
+			url += '&attachment='+attachment;
+			url += '&content='+content;
+			//url += '&title='+title;
+			console.log(url);
+			return url;	
+			
+		}		
+		if (method == 'get_dogs'){	
+			url += 'api/mage/'+method+'/';
+			url += '?author='+DS.user.id;
+			console.log(url);
+			return url;	
+			
+		}		
+		if (method == 'get_listings'){			
+			url += 'la/api/mage/'+method+'/';			
+			url += '?author_name='+DS.user.username;
+			console.log(url);
+			return url;			
+		}
+		if (method == 'get_posts'){			
+			if (post_type == 'event'){
+				url += method+'/?count='+DS.events.count+'&offset='+DS.events.offset;
+			} else {
+				url += method+'/?count='+DS.query.count+'&offset='+DS.query.offset;
+			}
+			
+			if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
+			if (DS.query.term !== '') url += '&type='+DS.query.term;
+			//if (DS.query.search !== '') url += '&s='+DS.query.search;
+			
+		}
+		if (post_type !== ''){
+			
+		}
+		console.log(url);
+		return url;	
+	},
+	showDogs: function(whistle,startup) {
+		startup = startup || false;
+		whistle = whistle || DS.howl('get_dogs');
+		DS.pauseInputs();
+        $.ajax({
+			type: 'GET',
+			url: whistle,
+			dataType: 'json',
+            success: function( response ) {
+				var sniffed = '';
+        		$.each(response.posts, function(index, value) {
+					console.log(value);	
+					var img = DS.displayImage(value.thumbnail_images, 'preview');									
+					sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
+			      	'<a href="single.html?id='+value.id+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h2>'+value.title+'</h2>';
+					sniffed += '</a></li>';
+				});
+				if(sniffed !== ''){
+               		$( "#my-dogs" ).find( "#new-dog" ).before(sniffed);
+                	$( "#my-dogs" ).listview( "refresh" );
+				} else {
+				sniffed += '<li class="druid-list-item item-event">' +
+			      	'<div class="ui-btn ui-btn-icon-right ui-icon-carat-r mage-list-item event-widget-item ui-btn">You haven\'t added any Dogs yet.</div></li>';
+					$( "#my-dogs" ).find( "#new-dog" ).before(sniffed);
+                	$( "#my-dogs" ).listview( "refresh" );
+				}
+            },
+            timeout: 10000,  // Timeout after 10 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
+            }			
+        }).done(function() {
+			DS.playInputs();
+		});
+    },
+	showListings: function(whistle,startup) {
+		startup = startup || false;
+		whistle = whistle || DS.howl('get_listings');
+		DS.pauseInputs();
+        $.ajax({
+			type: 'GET',
+			url: whistle,
+			dataType: 'json',
+            success: function( response ) {
+				var sniffed = '';
+        		$.each(response.posts, function(index, value) {
+					console.log(value);	
+					var reviews = DS.displayReview(value.rating);
+					var img = DS.displayImage(value.thumbnail_images, 'preview');
+					var cat = (value.types.children.length !== 0)? '<p class="item-cat">'+value.types.children[0].name+'</p>': '';
+					sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
+			      	'<a href="single.html?id='+value.id+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h2>'+value.title+'</h2>';
+					sniffed += reviews;
+					sniffed += '<p class="item-address halflings map-marker"><i></i> '+value.listing.street+', '+value.listing.city+'</p>';
+					//sniffed += cat;
+					sniffed += '</a></li>';			
+				});
+				if(sniffed !== ''){
+               		$( "#my-listings" ).find( "#new-listing" ).before(sniffed);
+                	$( "#my-listings" ).listview( "refresh" );
+				} else {
+				sniffed += '<li class="druid-list-item item-event">' +
+			      	'<div class="ui-btn ui-btn-icon-right ui-icon-carat-r mage-list-item event-widget-item ui-btn">You haven\'t added any Listings yet.</div></li>';
+					$( "#my-listings" ).find( "#new-listing" ).before(sniffed);
+                	$( "#my-listings" ).listview( "refresh" );
+				}
+            },
+            timeout: 10000,  // Timeout after 10 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
+            }			
+        }).done(function() {
+			DS.playInputs();
+		});
+    },
+	listen: function(method,value,value2){
+		var url = 'http://dogsniffer.com/'+DS.address.city_code+'/api/';
+		method = method || 'get_posts';
+		post_type = value || DS.query.post_type;	
+		if (method == 'get_calendar'){			
+			url += 'mage/'+method;			
+			return url;	
+			
+		}		
+		if (method == 'get_events'){			
+			url += 'mage/'+method+'/?count='+DS.events.count+'&offset='+DS.events.offset;			
+			//if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
+			//if (DS.query.term !== '') url += '&type='+DS.query.term;
+			//if (DS.query.search !== '') url += '&s='+DS.query.search;
+			return url;	
+			
+		}		
+		if (method == 'get_listings'){			
+			url += 'mage/'+method+'/?count='+DS.query.count+'&offset='+DS.query.offset;			
+			if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
+			if (DS.query.term !== '') url += '&type='+DS.query.term;
+			//if (DS.query.search !== '') url += '&s='+DS.query.search;
+			
+		}
+		if (method == 'get_posts'){			
+			if (post_type == 'event'){
+				url += method+'/?count='+DS.events.count+'&offset='+DS.events.offset;
+			} else {
+				url += method+'/?count='+DS.query.count+'&offset='+DS.query.offset;
+			}
+			
+			if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
+			if (DS.query.term !== '') url += '&type='+DS.query.term;
+			//if (DS.query.search !== '') url += '&s='+DS.query.search;
+			
+		}
+		if (method == 'get_category_posts'){			
+			url += 'get_posts/?count='+value2+'&type='+value+'&exclude='+DS.post.id;			
+		}
+		if (method == 'get_post'){
+			url += method+'/?id='+value;
+			url += '&post_type=listing';
+		}		
+		if (method == 'get_search_results'){
+			url += method+'/?search='+value;
+		}
+		if (post_type !== ''){
+			
 		}
 		console.log(url);
 		return url;	
@@ -623,8 +885,7 @@ var DS = {
 				DS.post.category = cat = value.types.children[0].slug;
 				category = '<p class="category">'+value.types.children[0].name+'</p>';
 			}				
-			if (value.cast !== undefined){
-			var today = new Date();
+			if (value.cast !== undefined){			
 			var weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 			var weekday = weekdays[today.getDay()];
 			$.each({'Monday':'mon','Tuesday':'tue','Wednesday':'wed','Thursday':'thu','Friday':'fri','Saturday':'sat','Sunday':'sun'}, function(day,hour){
@@ -649,7 +910,7 @@ var DS = {
 			DS.showRelated(DS.post.category);
 			DS.showReviews(DS.post.reviews);  
             },
-            timeout: 6000,  // Timeout after 6 seconds
+            timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);                
             }
@@ -698,12 +959,20 @@ var DS = {
 		if (count) return '<div class="author-rating"><span style="width:'+rating.rating+'%;"></span></div>'+reviews;
 		return '<div class="average-rating"><div class="author-rating"><span style="width:'+rating.rating+'%;"></span></div>'+reviews+'</div>';
 	},
-	displayImage: function(thumb){
-		thumb = thumb || 'http://dogsniffer.com/wp-content/themes/Gryphon/mage/images/dining.png';
+	displayImage: function(thumb,size){
+		thumb = thumb || '';
+		size = size || '';
+		if (size == 'custom' && thumb.custom) {
+			thumb = thumb.custom.url || '';
+		} else if (size == 'preview' && thumb.preview) {
+			thumb = thumb.preview.url || '';
+		}
+		if (thumb == '') thumb = 'http://dogsniffer.com/wp-content/themes/Gryphon/mage/images/dining.png';
 		return '<img src="'+thumb+'" class="thumbnail" />';
 	},
-    showMore: function(whistle) {
-		whistle = whistle || DS.listen();
+    showMore: function(whistle,startup) {
+		startup = startup || false;
+		whistle = whistle || DS.listen('get_listings');
 		DS.pauseInputs();
         $.ajax({
 			type: 'GET',
@@ -716,20 +985,18 @@ var DS = {
 					DS.query.offset += 1;
 					console.log(value);	
 					var reviews = DS.displayReview(value.rating);
-					var img = DS.displayImage(value.thumbnail);
-					var cat = (value.types.children.length !== 0)? '<p class="item-cat">'+value.types.children[0].name+'</p>': '';
-
-					
-					sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'">' +
+					var img = DS.displayImage(value.thumbnail_images, 'preview');
+					var cat = (value.types.children.length !== 0)? '<p class="item-cat">'+value.types.children[0].name+'</p>': '';					
+					sniffed += '<li class="druid-list-item druid-listing ui-li-has-thumb item-'+value.type+'">' +
 			      	'<a href="single.html?id='+value.id+'" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +'<h2>'+value.title+'</h2>';
 					sniffed += reviews;
-					sniffed += '<p class="item-address">'+value.listing.street+', '+value.listing.city+'</p>';
-					sniffed += cat;
+					sniffed += '<p class="item-address halflings map-marker"><i></i> '+value.listing.street+', '+value.listing.city+'</p>';
+					//sniffed += cat;
 					sniffed += '</a></li>';
 				});
 				if(sniffed !== ''){
-               		$( ".druid-listings" ).find( "#show-more" ).before(sniffed);
-                	$( ".druid-listings" ).listview( "refresh" );
+               		$( ".druid-listings" ).find( "#more-listings" ).before(sniffed);
+                	$( ".druid-listings" ).listview( "refresh" );					
 				} else {
 				var message = 'We couldn\'t sniff out any listings with the criteria:';
 					if (DS.query.search !== '') message += '<p>Keyword: <span style="color:#dd3333">'+DS.query.search+'</span></p>';
@@ -737,6 +1004,81 @@ var DS = {
 					if (DS.query.term !== '') message += '<p>Category: <span style="color:#dd3333">'+DS.query.term+'</span></p>';
 					$( "#poo h3.ui-title" ).html(message);
 					$( "#poo" ).popup( "open" );  
+				}
+            },
+            timeout: 10000,  // Timeout after 10 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
+            }			
+        }).done(function() {
+			DS.playInputs();
+		});
+    },
+	showCalendar: function(whistle) {
+		whistle = whistle || DS.listen('get_calendar');
+		DS.pauseInputs();
+        $.ajax({
+			type: 'GET',
+			url: whistle,
+			dataType: 'json',
+            success: function( response ) {
+				var cal = response.posts;
+				var list = response.list;
+				var month = response.month;
+				//console.log(response);
+				//$("#calendar-container").append(cal).closest( "table#mage-calendar" ).table( "refresh" ).trigger( "create" );
+				$("#calendar-container").append(cal);	
+				$("#close-event-panel").before(list);
+				$(".calendar-month").html(month);				
+				
+				$("#event-list").panel( "open" );
+				$("#mage-events").listview( "refresh" );
+            },
+            timeout: 20000,  // Timeout after 10 seconds
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);       
+            }			
+        }).done(function() {
+			DS.playInputs();
+		});
+    },
+	showEvents: function(whistle) {
+		whistle = whistle || DS.listen('get_events');
+		console.log(whistle);
+		DS.pauseInputs();
+        $.ajax({
+			type: 'GET',
+			url: whistle,
+			dataType: 'json',
+            success: function( response ) {
+				var sniffed = '';
+        		$.each(response.posts, function(index, value) {
+					DS.events.offset += 1;
+					console.log(value);	
+					//var reviews = DS.displayReview(value.rating);
+					var img = DS.displayImage(value.thumbnail_images,'custom');
+					var startdate = (value.long !== '')? '<span class="halflings time"><i></i> <time>'+value.long+'</time></span>': '';
+					var bigdate = '<div class="mage-box-date"><div class="mage-box-startdate">'+value.day+'<em>'+value.month+'</em></div></div>';
+
+					
+					//sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'"><a href="#" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +bigdate +'<h2>'+value.title+'</h2>';
+					sniffed += '<li class="druid-list-item item-'+value.type+'">' +
+			      	'<a href="#" class="ui-btn ui-btn-icon-right ui-icon-carat-r mage-list-item event-widget-item ui-btn">' + img +bigdate +
+					'<div class="event-widget-details"><h2>'+value.title+'</h2>'+startdate+'</div>';
+					//sniffed += reviews;
+					sniffed += "<div class='event-hidden-details'><p class='item-address'>"+value.listing.street+", "+value.listing.city+"</p></div>";
+					//sniffed += startdate;
+					sniffed += '</a></li>';
+				});
+				if(sniffed !== ''){
+               		$( ".druid-events" ).find( "#more-events" ).before(sniffed);
+                	$( ".druid-events" ).listview( "refresh" );
+				} else {
+				var message = '';
+					sniffed += '<li class="druid-list-item item-event">' +
+			      	'<div class="ui-btn ui-btn-icon-right ui-icon-carat-r mage-list-item event-widget-item ui-btn">We couldn\'t sniff out any events with the criteria.</div></li>';
+					$( ".druid-events" ).find( "#more-events" ).before(sniffed);
+                	$( ".druid-events" ).listview( "refresh" );
 				}
             },
             timeout: 10000,  // Timeout after 10 seconds
@@ -822,10 +1164,27 @@ var DS = {
 		}
     },
 	onDeviceReady: function() {
-		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);     
-		//window.analytics.startTrackerWithId('UA-17409167-3');
-		gaPlugin = window.plugins.gaPlugin;
-		gaPlugin.init(nativePluginResultHandler, nativePluginErrorHandler, "UA-17409167-4", 10);
+		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);
+		//pictureSource=navigator.camera.PictureSourceType;
+		//destinationType=navigator.camera.DestinationType;		
+	},
+	capturePhoto: function() {
+		navigator.camera.getPicture(DS.onPhotoDataSuccess, DS.onFail, { quality: 50, allowEdit : true,
+		destinationType: destinationType.DATA_URL });
+	},
+	onFail: function(message) {
+		alert('Failed because: ' + message);
+	},
+	onPhotoDataSuccess:	function(imageData)	{
+		console.log(imageData);
+		largeImage.style.display = 'block';
+		largeImage.src = "data:image/jpeg;base64," + imageData;
+	},
+	onPhotoURISuccess: function(imageURI) {
+		console.log(imageURI);
+		var largeImage = document.getElementById('largeImage');
+		largeImage.style.display = 'block';
+		largeImage.src = imageURI;
 	},
 	onSuccess: function(position) {
 	var city = DS.address.city;
@@ -870,6 +1229,7 @@ var DS = {
 				} 			
 				DS.setSelect('#opt-city',DS.address.city_code);				
 				DS.showMore();		
+				DS.showEvents();
 			} else {
 				alert("Geocoder failed due to: " + status);
 			}
@@ -902,8 +1262,8 @@ var DS = {
 };
 	</script>
     </head>
-    <body>
-	<div data-role="page" id="home" class="page">
+    <body>	
+	<div data-role="page" id="home" class="page" data-title="Dog Sniffer">
 	<div data-role="header" data-position="fixed"><h1>Dog Sniffer</h1>
 	<form id="flippos">
 		<select name="open-map" id="open-map" data-role="flipswitch" data-theme="b" data-corners="false">
@@ -912,7 +1272,6 @@ var DS = {
 		</select></form>
 	</div>
 	<div id="mage-list" role="main" class="ui-content">
-	<input type="search" placeholder="Zip Code" id="opt-zip" name="opt-zip" value="" data-clear-btn="true" class="onchange" data-theme="a" />
 	<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" data-theme="a" />
 	<select name="opt-category" id="opt-category" data-native-menu="false" class="mage-select"><option data-placeholder="true">Categories</option>
 		<option value="all">All Categories</option>
@@ -924,35 +1283,19 @@ var DS = {
 		<option value="training">Training</option>
 		<option value="travel">Travel</option>
     </select>
+<h2 class="home-title">New Listings</h2><p class="subtitle">Recently Added Dog Friendly Businesses</p>
 	<ul class="druid-listings ui-corner-all ui-shadow" data-role="listview" data-inset="true">
-		<li id="show-more" data-theme="b" data-icon="plus" ><a href=""><h1>Show more</h1></a></li>
+		<li id="more-listings" data-theme="b" data-icon="plus" ><a href=""><h2>More Listings Nearby</h2></a></li>
+	</ul>
+<h2 class="home-title">Upcoming Events</h2><p class="subtitle">Events for Dog Lovers and Dogs!</p>
+	<ul class="druid-events ui-corner-all ui-shadow" data-role="listview" data-inset="true">
+		<li id="more-events" data-theme="b" data-icon="calendar" ><a href="calendar.html"><h2>View Calendar</h2></a></li>
 	</ul>
 	</div>
 	<div role="main" class="ui-content" id="mage-map" style="display:none;"></div>
-	<div data-role="footer" data-position="fixed" role="contentinfo">			
-		<div data-role="navbar">
-		<ul><li><a href="#" data-icon="home" class="ui-btn-active ui-btn">Nearby</a></li>
-			<li><a href="#login"  data-rel="popup" data-icon="lock"  data-position-to="window" class="ui-btn ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Sign In</a></li>		
-			<li><a href="#actions"  data-rel="popup" data-icon="bars" class="ui-btn ui-shadow ui-btn-inline ui-icon-bars" data-transition="slideup">Options</a></li>					
-		</ul>
-		</div>
-	</div>
-	<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay">
-		<h3>Search Options</h3>
-		<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange mage-select">
-			<option>Choose A City</option>
-			<option value="la">Los Angeles</option>
-			<option value="sb">Santa Barbara</option>
-			<option value="oc">Orange County</option>
-		</select>		
-	</div>
-	<div data-role="popup" id="error">
-		<div role="main" class="ui-content">
-			<h3 class="ui-title"></h3>
-			<p></p>
-		</div>
-	</div>
-	<div data-role="popup" id="poo">
+	
+	
+	<div data-role="popup" id="poo" data-dismissible="false">
 		<a href="#" data-rel="back" data-theme="b" class="ui-btn ui-btn-b ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
 		<div data-role="header" data-theme="a"><h1>Oh Dog Poo!</h1></div>
 		<div role="main" class="ui-content">
@@ -962,14 +1305,42 @@ var DS = {
 		</div>
 	</div>		
 	</div>
-	<div data-role="popup" id="actions" data-theme="b">
+<?php if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') { ?>
+	<div data-role="footer" data-position="fixed" role="contentinfo" data-theme="a">	
+		<h4 style="display:none;" class="ui-title" role="heading" aria-level="1">Footer</h4>
+		<div data-role="navbar">
+		<ul><li><a href="index.html" data-icon="home" id="home-btn" class="ui-btn-active ui-state-persist ui-btn" data-title="Dog Sniffer">Nearby</a></li>
+			<li><a href="#login"  data-rel="popup" id="profile-btn" data-icon="lock"  data-position-to="window" class="ui-btn ui-shadow ui-btn-inline ui-icon-lock ui-btn-login" data-transition="pop">Sign In</a></li>		
+			<li><a href="#actions"  data-rel="popup" data-icon="bars" class="ui-btn ui-shadow ui-btn-inline ui-icon-bars" data-transition="slideup">Options</a></li>					
+		</ul>
+		</div>
+	</div>	
+	<div data-role="popup" id="error">
+		<div role="main" class="ui-content">
+			<h3 class="ui-title"></h3>
+			<p></p>
+		</div>
+	</div>
+	<div data-role="panel" id="options" data-position="left" data-position-fixed="false" data-display="overlay" data-theme="a">
+		<div class="me"></div>		
+		<ul data-role="listview" data-inset="true" style="min-width:210px;" data-theme="a" class="user-options">
+		<!--li><a href="profile.html">Edit Profile</a></li-->
+		<!--li><a href="dogs.html">My Dogs</a></li-->
+		<!--li><a href="listings.html">My Listings</a></li-->	
+		<!--li><a href="events.html">My Events</a></li-->
+		<!--li><a href="ratings.html">My Ratings</a></li-->		
+		</ul>
+		<h4>Change City</h4>
+		<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange mage-select" data-theme="a">
+			<option>Choose A City</option>
+			<option value="la">Los Angeles</option>
+			<option value="sb">Santa Barbara</option>
+			<option value="oc">Orange County</option>
+		</select>
+	</div>
+	<div data-role="popup" id="actions" data-theme="a">
 			<ul data-role="listview" data-inset="true" style="min-width:210px;">
 			<li data-role="list-divider">Options</li>
-			<!--<li><a href="profile.html">Profile</a></li>
-			<li><a href="new.html">Add Listing</a></li>
-			<li><a href="#">My Listing</a></li>
-			<li><a href="#">Favourites</a></li>-->
-			<li><a href="#options" data-role="button">Change City</a></li>
 			<li><a href="#" onclick="window.open('http://www.dogsniffer.com', '_system');">Browser App</a></li>
 			</ul>
 		</div>
@@ -1018,3 +1389,4 @@ var DS = {
 	</div>
     </body>
 </html>
+<?php } ?>
