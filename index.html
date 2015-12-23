@@ -1124,9 +1124,6 @@ var DS = {
 			$( ".druid-reviews-title" ).hide();
 		}
     },
-    onLoad: function() {
-        document.addEventListener("deviceready", DS.onDeviceReady, false);
-    },
 	onDeviceReady: function() {		
 		
 		DS.init();
@@ -1223,12 +1220,53 @@ var DS = {
         }
     }	
 };
+/*
+var deviceReadyDeferred = $.Deferred();
+var jqmReadyDeferred = $.Deferred();
+
+document.addEventListener("deviceReady", deviceReady, false);
+
+function deviceReady() {
+  deviceReadyDeferred.resolve();
+}
+
+$(document).one("mobileinit", function () {
+  jqmReadyDeferred.resolve();
+});
+
+$.when(deviceReadyDeferred, jqmReadyDeferred).then(DS.onDeviceReady);
+
 function onLoad() {
         document.addEventListener("deviceready", DS.onDeviceReady, false);
     }
+*/
+$(document).ready(function() {
+    // are we running in native app or in a browser?
+    window.isphone = false;
+    if(document.URL.indexOf("http://") === -1 
+        && document.URL.indexOf("https://") === -1) {
+        window.isphone = true;
+    }
+
+    if( window.isphone ) {
+        //document.addEventListener("deviceready", DS.onDeviceReady, false);
+		document.addEventListener("deviceready", onDeviceReady, false);
+    } else {
+        //DS.onDeviceReady();
+		onDeviceReady();
+    }
+});
+
+function onDeviceReady() {
+    DS.init();
+		$("#home-btn").addClass( "ui-btn-active" );
+		$( "#open-map" ).flipswitch().flipswitch('refresh');
+		DS.setSelect('#opt-category');
+		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);
+}
 	</script>
     </head>
-	<body onload="onLoad()">
+	<body>
 	<div data-role="page" id="home" class="page" data-title="Dog Sniffer">
 	<div data-role="header" data-position="fixed"><h1>Dog Sniffer</h1>
 	<form id="flippos">
