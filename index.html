@@ -294,6 +294,7 @@ var DS = {
 	cache: {review:'',rating:'',full:false},
 	post: {id:'',category:'',reviews:'',},
 	nearby: false,	
+	ready: false,
 	setSelect: function(target, value){
 		value = value || false;
 		if (value) $(target).val(value).attr('selected', true).siblings('option').removeAttr('selected');
@@ -1133,7 +1134,8 @@ var DS = {
 		}
     },
 	onDeviceReady: function() {		
-		
+		if(DS.ready === false){
+		DS.ready = true;
 		DS.init();
 		$("#home-btn").addClass( "ui-btn-active" );
 		$( "#open-map" ).flipswitch().flipswitch('refresh');
@@ -1141,6 +1143,7 @@ var DS = {
 		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);
 		//pictureSource=navigator.camera.PictureSourceType;
 		//destinationType=navigator.camera.DestinationType;		
+		}
 	},
 	capturePhoto: function() {
 		navigator.camera.getPicture(DS.onPhotoDataSuccess, DS.onFail, { quality: 50, allowEdit : true,
@@ -1355,4 +1358,7 @@ var DS = {
 		</div>		
 	</div>
     </body>
+	<script type="text/javascript">
+    DS.onDeviceReady();
+</script>
 </html>
