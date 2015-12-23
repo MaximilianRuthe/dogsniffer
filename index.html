@@ -545,7 +545,7 @@ var DS = {
 	},
 	onError: function(text,text2,text3){
 		$.mobile.loading( "hide" );
-		text = text || 'An Error Has Occured';
+		text = JSON.stringify(text) || 'An Error Has Occured';
 		text2 = text2 || 'Error';
 		text3 = JSON.stringify(text3) || '';
 		$( "#error p" ).html(text+" Exception: "+text3);
