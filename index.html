@@ -342,10 +342,8 @@ var DS = {
 				}
 			},
 			timeout: 10000,  // Timeout after 10 seconds
-			error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-				$.mobile.loading( "hide" );
-				DS.onError(errorThrown);
+			error: function(jqXHR, textStatus, errorThrown) {         
+				DS.onError(errorThrown,textStatus,jqXHR);
            	}
 		}).done(function() {
 			DS.playInputs();
@@ -386,9 +384,7 @@ var DS = {
 						},
 						timeout: 10000,  // Timeout after 10 seconds
            				error: function(jqXHR, textStatus, errorThrown) {
-                			console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-							$.mobile.loading( "hide" );
-							DS.onError(errorThrown);
+							DS.onError(errorThrown,textStatus,jqXHR);
            				}
 					});					
 								
@@ -397,9 +393,7 @@ var DS = {
 			},
 			timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-				$.mobile.loading( "hide" );
-				DS.onError(errorThrown);
+				DS.onError(errorThrown,textStatus,jqXHR);
             }
 		}).done(function() {
 			DS.playInputs();
@@ -438,18 +432,14 @@ var DS = {
 						},
 						timeout: 10000,  // Timeout after 10 seconds
            				error: function(jqXHR, textStatus, errorThrown) {
-                			console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-							$.mobile.loading( "hide" );
-							DS.onError(errorThrown);
+							DS.onError(errorThrown,textStatus,jqXHR);
            				}
 					});
 				}
 			},
 			timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-				$.mobile.loading( "hide" );
-				DS.onError(errorThrown);
+				DS.onError(errorThrown,textStatus,jqXHR);
             }
 		}).done(function() {
 			DS.playInputs();
@@ -507,19 +497,15 @@ var DS = {
 							}
 						},
 						timeout: 10000,  // Timeout after 10 seconds
-           				error: function(jqXHR, textStatus, errorThrown) {
-                			console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-							$.mobile.loading( "hide" );
-							DS.onError(errorThrown);
+           				error: function(jqXHR, textStatus, errorThrown) {                			
+							DS.onError(errorThrown,textStatus,jqXHR);
            				}
 					});
 				}
 			},
 			timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-				$.mobile.loading( "hide" );
-				DS.onError(errorThrown);
+				DS.onError(errorThrown,textStatus,jqXHR);
             }
 		}).done(function() {
 			DS.playInputs();
@@ -549,9 +535,7 @@ var DS = {
 			},
 			timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);
-				$.mobile.loading( "hide" );
-				DS.onError(errorThrown);
+				DS.onError(errorThrown,textStatus,jqXHR);
             }
 		}).done(function() {
 			DS.playInputs();
@@ -559,9 +543,13 @@ var DS = {
 	}
 	}
 	},
-	onError: function(text){
+	onError: function(text,text2,text3){
+		$.mobile.loading( "hide" );
 		text = text || 'An Error Has Occured';
-		$( "#error p" ).html(text);
+		text2 = text2 || 'Error';
+		text3 = text3 || '';
+		$( "#error p" ).html(text+" Exception: "+text3);
+		$( "#error h3" ).html("Error: "+text2);
 		$( "#error" ).popup( "open" );  
 	},
 	refresh_list: function (){
@@ -672,7 +660,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                DS.onError(errorThrown);             
+                DS.onError(errorThrown,textStatus,jqXHR);            
             }			
         }).done(function() {
 			DS.playInputs();
@@ -712,7 +700,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                DS.onError(errorThrown);         
+                DS.onError(errorThrown,textStatus,jqXHR);         
             }			
         }).done(function() {
 			DS.playInputs();
@@ -980,7 +968,7 @@ var DS = {
             },
             timeout: 15000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                DS.onError(errorThrown);             
+                DS.onError(errorThrown,textStatus,jqXHR);            
             }			
         }).done(function() {
 			DS.playInputs();
@@ -1008,7 +996,7 @@ var DS = {
             },
             timeout: 20000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                DS.onError(errorThrown);       
+                DS.onError(errorThrown,textStatus,jqXHR);       
             }			
         }).done(function() {
 			DS.playInputs();
@@ -1055,7 +1043,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-               DS.onError(errorThrown);           
+               DS.onError(errorThrown,textStatus,jqXHR);          
             }			
         }).done(function() {
 			DS.playInputs();
@@ -1114,7 +1102,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                DS.onError(errorThrown);              
+                DS.onError(errorThrown,textStatus,jqXHR);              
             }
         });
     },
