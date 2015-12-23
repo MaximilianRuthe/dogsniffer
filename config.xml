@@ -7,6 +7,7 @@
     <author email="support@dogsniffer.com" href="http://dogsniffer.com">
         Dog Sniffer Team
     </author>
+	<gap:plugin name="com.indigoway.cordova.whitelist.whitelistplugin" />
 	<gap:plugin name="com.adobe.plugins.gaplugin" />
 	<gap:plugin name="com.phonegap.plugin.statusbar"/>
 	<gap:plugin name="org.apache.cordova.battery-status"/>
@@ -26,7 +27,7 @@
 	<gap:plugin name="org.apache.cordova.media-capture" />
 	<gap:plugin name="org.apache.cordova.network-information" />
 	<gap:plugin name="org.apache.cordova.splashscreen" />
-	<gap:plugin name="org.apache.cordova.vibration" />
+	<gap:plugin name="org.apache.cordova.vibration" />	
 	<preference name="StatusBarOverlaysWebView" value="false" />
     <preference name="permissions" value="none" />
     <preference name="orientation" value="default" />
