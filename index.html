@@ -36,7 +36,7 @@
 		<script type="text/javascript" src="js/jquery.js"></script>
 		<script type="text/javascript" src="cordova.js"></script>
 		<script type='text/javascript' src='js/jquery.mobile-1.4.5.min.js'></script>		
-		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js"></script>
 		<script type='text/javascript' src='js/gmaps.js'></script>
 	<script>
 var directions;
@@ -672,7 +672,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
+                DS.onError(errorThrown);             
             }			
         }).done(function() {
 			DS.playInputs();
@@ -712,7 +712,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
+                DS.onError(errorThrown);         
             }			
         }).done(function() {
 			DS.playInputs();
@@ -980,7 +980,7 @@ var DS = {
             },
             timeout: 15000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
+                DS.onError(errorThrown);             
             }			
         }).done(function() {
 			DS.playInputs();
@@ -1008,7 +1008,7 @@ var DS = {
             },
             timeout: 20000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);       
+                DS.onError(errorThrown);       
             }			
         }).done(function() {
 			DS.playInputs();
@@ -1055,7 +1055,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
+               DS.onError(errorThrown);           
             }			
         }).done(function() {
 			DS.playInputs();
@@ -1114,7 +1114,7 @@ var DS = {
             },
             timeout: 10000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);                
+                DS.onError(errorThrown);              
             }
         });
     },
