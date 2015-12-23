@@ -145,7 +145,7 @@ $( document ).on( "pagecreate", "#home", function() {
 	$('.onchange').on( "change", function( e ){  
 		DS.refresh_list();
 		DS.address.city = $('#opt-city').val();
-		DS.address.zip = $('#opt-zip').val();	
+		//DS.address.zip = $('#opt-zip').val();	
 		DS.query.search = $('#s').val();
 		if (DS.query.search != '') {
 			var fetch = DS.listen('get_search_results',DS.query.search);
@@ -280,7 +280,7 @@ var DS = {
 	supported: ['Los Angeles','Orange County','Santa Barbara'],
 	query: {search: '',term: '',post_type: 'listing',count: 3,offset: 0,posts:[]},
 	events: {search: '',term: '',post_type: 'event',count: 3,offset: 0,posts:[]},
-	geo: {origin:[],lat:'',lng:''},
+	geo: {origin:[],lat:34.0544902,lng:-118.4413104},
 	single: {title:'',about:'',hours:'',website:''},
 	user: {cookie:'',cookie_name:'',username:'',title:'',about:'',hours:'',website:'',id:''},
 	cache: {review:'',rating:'',full:false},
@@ -574,7 +574,7 @@ var DS = {
 	},
 	rollover: function(method,value,value2,value3,value4){
 		var url = 'http://dogsniffer.com/'+DS.address.city_code+'/api/';
-		method = method || 'get_posts';		
+		method = method || 'get_nonce';		
 		if (value2 =='create_dog') url = 'http://dogsniffer.com/api/';
 		if (method == 'create_post'){
 		
@@ -636,19 +636,7 @@ var DS = {
 			url += '?author_name='+DS.user.username;
 			console.log(url);
 			return url;			
-		}
-		if (method == 'get_posts'){			
-			if (post_type == 'event'){
-				url += method+'/?count='+DS.events.count+'&offset='+DS.events.offset;
-			} else {
-				url += method+'/?count='+DS.query.count+'&offset='+DS.query.offset;
-			}
-			
-			if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
-			if (DS.query.term !== '') url += '&type='+DS.query.term;
-			//if (DS.query.search !== '') url += '&s='+DS.query.search;
-			
-		}
+		}		
 		if (post_type !== ''){
 			
 		}
@@ -732,7 +720,7 @@ var DS = {
     },
 	listen: function(method,value,value2){
 		var url = 'http://dogsniffer.com/'+DS.address.city_code+'/api/';
-		method = method || 'get_posts';
+		method = method || 'get_listings';
 		post_type = value || DS.query.post_type;	
 		if (method == 'get_calendar'){			
 			url += 'mage/'+method;			
@@ -753,19 +741,7 @@ var DS = {
 			if (DS.query.term !== '') url += '&type='+DS.query.term;
 			//if (DS.query.search !== '') url += '&s='+DS.query.search;
 			
-		}
-		if (method == 'get_posts'){			
-			if (post_type == 'event'){
-				url += method+'/?count='+DS.events.count+'&offset='+DS.events.offset;
-			} else {
-				url += method+'/?count='+DS.query.count+'&offset='+DS.query.offset;
-			}
-			
-			if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
-			if (DS.query.term !== '') url += '&type='+DS.query.term;
-			//if (DS.query.search !== '') url += '&s='+DS.query.search;
-			
-		}
+		}		
 		if (method == 'get_category_posts'){			
 			url += 'get_posts/?count='+value2+'&type='+value+'&exclude='+DS.post.id;			
 		}
@@ -919,6 +895,7 @@ var DS = {
 		$('a.ui-btn').addClass('ui-disabled');
 		$('input[type="text"], input[type="search"]').attr('disabled','disabled');
 		text = text || 'Sniffing Out Locations Near You';
+		DS.address.zip = DS.address.zip || '';
 		if (DS.address.zip !== '') text = 'Sniffing Out Locations Near '+DS.address.zip;
 		$.mobile.loading( "show", {
 			text: text,
@@ -1001,7 +978,7 @@ var DS = {
 					$( "#poo" ).popup( "open" );  
 				}
             },
-            timeout: 10000,  // Timeout after 10 seconds
+            timeout: 15000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log("Error, textStatus: " + textStatus + " errorThrown: "+ errorThrown);              
             }			
