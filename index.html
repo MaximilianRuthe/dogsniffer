@@ -194,7 +194,7 @@ $( document ).on( "pagecreate", "#home", function() {
 		}
 		
 	});
-	DS.onDeviceReady();
+	//DS.onDeviceReady();
 });
 $( document ).on( "pagecreate", "#dogs", function() {
 DS.init();
@@ -1124,6 +1124,9 @@ var DS = {
 			$( ".druid-reviews-title" ).hide();
 		}
     },
+    onLoad: function() {
+        document.addEventListener("deviceready", DS.onDeviceReady, false);
+    },
 	onDeviceReady: function() {		
 		
 		DS.init();
@@ -1220,9 +1223,12 @@ var DS = {
         }
     }	
 };
+function onLoad() {
+        document.addEventListener("deviceready", DS.onDeviceReady, false);
+    }
 	</script>
     </head>
-    <body>	
+	<body onload="onLoad()">
 	<div data-role="page" id="home" class="page" data-title="Dog Sniffer">
 	<div data-role="header" data-position="fixed"><h1>Dog Sniffer</h1>
 	<form id="flippos">
