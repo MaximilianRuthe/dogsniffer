@@ -51,12 +51,7 @@ $(document).on('pagebeforeshow', "#single", function (event, data) {
     DS.post.id = parameter = parameters.replace("id=",""); 
     DS.singleView(DS.post.id,'listing');	
 });
-$( document ).on( "pagecreate", "#home", function() {
-	DS.init();	
-	$("#home-btn").addClass( "ui-btn-active" );
-	$( "#open-map" ).flipswitch().flipswitch('refresh');
-	DS.setSelect('#opt-category');
-	
+$( document ).on( "pagecreate", "#home", function() {	
 	var regSwitch = $( "#open-register" ),
         logSwitch = $( "#open-login" ),
 		passSwitch = $( "#open-password" ),
@@ -1163,7 +1158,12 @@ var DS = {
 			$( ".druid-reviews-title" ).hide();
 		}
     },
-	onDeviceReady: function() {
+	onDeviceReady: function() {		
+		
+		DS.init();
+		$("#home-btn").addClass( "ui-btn-active" );
+		$( "#open-map" ).flipswitch().flipswitch('refresh');
+		DS.setSelect('#opt-category');
 		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);
 		//pictureSource=navigator.camera.PictureSourceType;
 		//destinationType=navigator.camera.DestinationType;		
@@ -1212,18 +1212,12 @@ var DS = {
 										DS.address.city_code = 'sf';
 									} else if (DS.address.city == 'Orange County') {
 										DS.address.city_code = 'oc';
-									}									
+									}				
+									DS.nearby = true;
 								} else {
 									break;
 								}
-							}
-							if (results[0].address_components[i].types[b] == "postal_code") {
-								DS.address.zip = results[0].address_components[i].long_name;	
-								DS.nearby = true;
-								$('#opt-zip').val(DS.address.zip);	
-								$('#opt-add').val(DS.address.full);	
-								break;
-							}
+							}							
 						}
 					}				
 				} 			
