@@ -543,12 +543,13 @@ var DS = {
 	}
 	}
 	},
-	onError: function(text,text2,text3){
+	onError: function(text,text2,text3,text4){
 		$.mobile.loading( "hide" );
 		text = JSON.stringify(text) || 'An Error Has Occured';
 		text2 = text2 || 'Error';
 		text3 = JSON.stringify(text3) || '';
-		$( "#error p" ).html(text+" Exception: "+text3);
+		text4 = text4 || '';
+		$( "#error p" ).html(text+" Exception: "+text3+" Query: "+text4);
 		$( "#error h3" ).html("Error: "+text2);
 		$( "#error" ).popup( "open" );  
 	},
@@ -968,7 +969,7 @@ var DS = {
             },
             timeout: 15000,  // Timeout after 10 seconds
             error: function(jqXHR, textStatus, errorThrown) {
-                DS.onError(errorThrown,textStatus,jqXHR);            
+                DS.onError(errorThrown,textStatus,jqXHR,whistle);            
             }			
         }).done(function() {
 			DS.playInputs();
