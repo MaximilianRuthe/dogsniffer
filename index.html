@@ -370,7 +370,6 @@ var DS = {
 		if (dog_name !== '' && dog_content !== ''){
 		
 		
-		alert('URL: '+nonce);
 		DS.pauseInputs('Adding Dog');
 		$.ajax({
 			type: 'GET',
@@ -1164,7 +1163,6 @@ var DS = {
 		largeImage.src = imageURI;
 	},
 	onSuccess: function(position) {
-	alert('onSuccess');
 	var city = DS.address.city;
 	var lat = position.coords.latitude;
 	var lng = position.coords.longitude;
@@ -1245,7 +1243,7 @@ var DS = {
 	</div>
 	<div id="mage-list" role="main" class="ui-content">
 	<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" data-theme="a" />
-	<select name="opt-category" id="opt-category" data-native-menu="false" class="mage-select"><option data-placeholder="true">Categories</option>
+	<select name="opt-category" id="opt-category" data-native-menu="false" class="mage-select" data-theme="a" ><option data-placeholder="true" >Categories</option>
 		<option value="all">All Categories</option>
 		<option value="activities">Activities</option>
 		<option value="dining">Dining</option>
