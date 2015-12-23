@@ -547,7 +547,7 @@ var DS = {
 		$.mobile.loading( "hide" );
 		text = text || 'An Error Has Occured';
 		text2 = text2 || 'Error';
-		text3 = text3 || '';
+		text3 = JSON.stringify(text3) || '';
 		$( "#error p" ).html(text+" Exception: "+text3);
 		$( "#error h3" ).html("Error: "+text2);
 		$( "#error" ).popup( "open" );  
@@ -1274,7 +1274,7 @@ var DS = {
 		</ul>
 		</div>
 	</div>	
-	<div data-role="popup" id="error">
+	<div data-role="popup" id="error" data-theme="a">
 		<div role="main" class="ui-content">
 			<h3 class="ui-title"></h3>
 			<p></p>
