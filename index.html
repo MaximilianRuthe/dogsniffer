@@ -51,7 +51,7 @@ $(document).on('pagebeforeshow', "#single", function (event, data) {
     DS.post.id = parameter = parameters.replace("id=",""); 
     DS.singleView(DS.post.id,'listing');	
 });
-$( document ).on( "pagecreate", "#home", function() {	
+$( document ).on( "pagecreate", "#home", function() {
 	var regSwitch = $( "#open-register" ),
         logSwitch = $( "#open-login" ),
 		passSwitch = $( "#open-password" ),
@@ -194,7 +194,15 @@ $( document ).on( "pagecreate", "#home", function() {
 		}
 		
 	});
-	//DS.onDeviceReady();
+	window.isphone = false;
+    if(document.URL.indexOf("http://") === -1 && document.URL.indexOf("https://") === -1) {
+        window.isphone = true;
+    }
+    if( window.isphone ) {
+        document.addEventListener("deviceready", DS.onDeviceReady, false);
+    } else {
+        DS.onDeviceReady();
+    }
 });
 $( document ).on( "pagecreate", "#dogs", function() {
 DS.init();
@@ -1220,50 +1228,6 @@ var DS = {
         }
     }	
 };
-/*
-var deviceReadyDeferred = $.Deferred();
-var jqmReadyDeferred = $.Deferred();
-
-document.addEventListener("deviceReady", deviceReady, false);
-
-function deviceReady() {
-  deviceReadyDeferred.resolve();
-}
-
-$(document).one("mobileinit", function () {
-  jqmReadyDeferred.resolve();
-});
-
-$.when(deviceReadyDeferred, jqmReadyDeferred).then(DS.onDeviceReady);
-
-function onLoad() {
-        document.addEventListener("deviceready", DS.onDeviceReady, false);
-    }
-*/
-$(document).ready(function() {
-    // are we running in native app or in a browser?
-    window.isphone = false;
-    if(document.URL.indexOf("http://") === -1 
-        && document.URL.indexOf("https://") === -1) {
-        window.isphone = true;
-    }
-
-    if( window.isphone ) {
-        //document.addEventListener("deviceready", DS.onDeviceReady, false);
-		document.addEventListener("deviceready", onDeviceReady, false);
-    } else {
-        //DS.onDeviceReady();
-		onDeviceReady();
-    }
-});
-
-function onDeviceReady() {
-    DS.init();
-		$("#home-btn").addClass( "ui-btn-active" );
-		$( "#open-map" ).flipswitch().flipswitch('refresh');
-		DS.setSelect('#opt-category');
-		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);
-}
 	</script>
     </head>
 	<body>
