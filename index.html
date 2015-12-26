@@ -94,9 +94,6 @@ $( document ).on( "pagecreate", "#home", function() {
 		}
 		e.preventDefault();
 	});
-	mapSwitch.on( "click", function( e ){
-		
-    });
 	$('.druid-events').on("click",".mage-list-item ",function(){
 		//e.preventDefault();
 		$(this).parent().parent().find('.active').removeClass('active');
@@ -130,7 +127,7 @@ $( document ).on( "pagecreate", "#home", function() {
 		$('#s').val('');	
 		DS.setSelect('#opt-category','all');
         $( "#poo" ).popup( "close" );  
-		DS.showMore();
+		DS.showMore(true);
         e.preventDefault();
     });	
 	$( "#expand" ).on( "click", function( e ){      
@@ -139,28 +136,45 @@ $( document ).on( "pagecreate", "#home", function() {
 		$('#opt-zip').val('');
 		DS.setSelect('#opt-category','all');
         $( "#poo" ).popup( "close" );  
-		DS.showMore();
+		DS.showMore(true);
         e.preventDefault();
     });	
 	$('.onchange').on( "change", function( e ){  
-		DS.refresh_list();
-		DS.address.city = $('#opt-city').val();
-		//DS.address.zip = $('#opt-zip').val();	
+		DS.query.term = '';		
+		DS.address.zip = $('#opt-zip').val();
 		DS.query.search = $('#s').val();
-		if (DS.query.search != '') {
-			var fetch = DS.listen('get_search_results',DS.query.search);
-			DS.showMore(fetch);
+		DS.setSelect('#opt-category','all');
+		if (DS.query.search !== '' && e.target.id === 's') {			
+			$('#opt-zip').val('');
+			DS.address.zip = $('#opt-zip').val();	
+			DS.showMore(true, true);			
 		} else {
-			DS.showMore();
+			$('#s').val('');
+			DS.showMore(true);
 		}	  
+		
 		e.preventDefault();
     });	
-	$('#opt-category').on( "change", function( e ){
-		DS.refresh_list();
+	$('#opt-city').on( "change", function( e ){
+		DS.address.city_code = $('#opt-city').val();
+		DS.address.city = $('#opt-city option:selected').text();
+		DS.address.zip = '';
+		DS.query.search = '';
+		DS.query.term = '';
+		$('#opt-zip').val('');
 		$('#s').val('');	
+		DS.setSelect('#opt-category','all');
+		$('.listings-subtitle').html('Recently Added Dog Friendly Businesses in '+DS.address.city);
+		DS.showMore(true);
+		DS.showEvents();
+	});
+	$('#opt-category').on( "change", function( e ){
+		$('#s').val('');	
+		$('#opt-zip').val('');
+		DS.address.zip = $('#opt-zip').val();	
 		DS.query.term = $('#opt-category').val();
-		DS.query.term = (DS.query.term == 'all')? '' : DS.query.term;
-		DS.showMore();
+		DS.query.term = (DS.query.term == 'all')? '' : DS.query.term;		
+		DS.showMore(true);
 	});
 	$('.submit-login').on( "click", function( e ){
 		e.preventDefault();
@@ -194,15 +208,13 @@ $( document ).on( "pagecreate", "#home", function() {
 		}
 		
 	});
-	window.isphone = false;
-    if(document.URL.indexOf("http://") === -1 && document.URL.indexOf("https://") === -1) {
-        window.isphone = true;
-    }
-    if( window.isphone ) {
-        document.addEventListener("deviceready", DS.onDeviceReady, false);
-    } else {
-        DS.onDeviceReady();
-    }
+	DS.init();
+	$('.listings-subtitle').html('Recently Added Dog Friendly Businesses in '+DS.address.city);
+	$("#home-btn").addClass( "ui-btn-active" );
+	$( "#open-map" ).flipswitch().flipswitch('refresh');
+	DS.setSelect('#opt-category');	
+	DS.showMore();		
+	DS.showEvents();
 });
 $( document ).on( "pagecreate", "#dogs", function() {
 DS.init();
@@ -285,7 +297,7 @@ $( document ).on( "pagecreate", "#single", function() {
 });
 var DS = {
 	address: {full:'',city:'Los Angeles',city_code: 'la', zip:'',state:'',street:'',county:''},
-	supported: ['Los Angeles','Orange County','Santa Barbara'],
+	supported: ['Los Angeles','Orange County','Santa Barbara','San Francisco'],
 	query: {search: '',term: '',post_type: 'listing',count: 3,offset: 0,posts:[]},
 	events: {search: '',term: '',post_type: 'event',count: 3,offset: 0,posts:[]},
 	geo: {origin:[],lat:34.0544902,lng:-118.4413104},
@@ -455,10 +467,8 @@ var DS = {
 		
 	},
 	init: function(){
-		$( "#login" ).enhanceWithin().popup();
-		$( "#actions" ).enhanceWithin().popup();
-		$( "body>[data-role='popup']" ).popup();
-		$( "body>[data-role='panel']" ).panel();
+		$( "body>[data-role='popup']" ).enhanceWithin().popup();
+		$( "body>[data-role='panel']" ).enhanceWithin().panel();
 		$( ".user-options").listview();
 		$( "[data-role='header'], [data-role='footer']" ).toolbar();
 		$( "[data-role='navbar'] a.ui-btn-active" ).removeClass( "ui-btn-active" );
@@ -561,13 +571,12 @@ var DS = {
 		$( "#error h3" ).html("Error: "+text2);
 		$( "#error" ).popup( "open" );  
 	},
-	refresh_list: function (){
+	refresh_list: function (offset){
 		$('.druid-listing').remove();
+		$('.listings-title').html('New Listings');
 		DS.query.posts = [];
-		DS.query.offset = 0;
-		DS.events.posts = [];
-		DS.events.offset = 0;
-		
+		offset = offset || 0;
+		DS.query.offset = offset;
 	},
 	rollover: function(method,value,value2,value3,value4){
 		var url = 'http://dogsniffer.com/'+DS.address.city_code+'/api/';
@@ -725,10 +734,7 @@ var DS = {
 			
 		}		
 		if (method == 'get_events'){			
-			url += 'mage/'+method+'/?count='+DS.events.count+'&offset='+DS.events.offset;			
-			//if (DS.address.zip !== '') url += '&meta_key=mage_zip&meta_value='+DS.address.zip;
-			//if (DS.query.term !== '') url += '&type='+DS.query.term;
-			//if (DS.query.search !== '') url += '&s='+DS.query.search;
+			url += 'mage/'+method+'/?count='+DS.events.count+'&offset='+DS.events.offset;	
 			return url;	
 			
 		}		
@@ -779,11 +785,9 @@ var DS = {
 					if (DS.nearby === false){
 						DS.geo.lat = 34.0544902;
 						DS.geo.lng = -118.4413104;
-						DS.nearby = true;
 					}
 					DS.geo.origin = [DS.geo.lat,DS.geo.lng];
 					
-					if (DS.nearby){
 					directions = new GMaps({
 						div: '#mage-dir',
 						lat: latlng.lat(),
@@ -838,9 +842,7 @@ var DS = {
 							$(".dist").append('<div class="dist-time">'+time+' min</div>'+distance+' miles');
                         }
 					});
-					} else {
-						$('.page-directions').remove();
-					}
+						//$('.page-directions').remove();
 					$(".mapbox").css('background-image','url('+url+')');
 					$(".map-add").append(value.listing.street+'<br />'+value.listing.city+', '+value.listing.zip);
 				}
@@ -939,9 +941,17 @@ var DS = {
 		if (thumb == '') thumb = 'http://dogsniffer.com/wp-content/themes/Gryphon/mage/images/dining.png';
 		return '<img src="'+thumb+'" class="thumbnail" />';
 	},
-    showMore: function(whistle,startup) {
-		startup = startup || false;
-		whistle = whistle || DS.listen('get_listings');
+    showMore: function(refresh, search) {	
+		var cacheOffset = DS.query.offset;
+		var whistle;
+		search = search || false;
+		refresh = refresh || false;
+		if (refresh === true) DS.query.offset = 0;
+		if (search === true){
+			whistle = DS.listen('get_search_results',DS.query.search);
+		} else {				
+			whistle = whistle || DS.listen('get_listings');
+		}
 		DS.pauseInputs();
         $.ajax({
 			type: 'GET',
@@ -949,9 +959,11 @@ var DS = {
 			dataType: 'json',
             success: function( response ) {
 				var sniffed = '';
+				var absoluteOffset = 0;
         		$.each(response.posts, function(index, value) {
 					DS.query.posts.push(value);
 					DS.query.offset += 1;
+					absoluteOffset += 1;
 					console.log(value);	
 					var reviews = DS.displayReview(value.rating);
 					var img = DS.displayImage(value.thumbnail_images, 'preview');
@@ -964,10 +976,15 @@ var DS = {
 					sniffed += '</a></li>';
 				});
 				if(sniffed !== ''){
+					if (refresh === true) DS.refresh_list(absoluteOffset);
+					if (DS.query.term !== '') $('.listings-title').html('New Listings in "'+DS.query.term+'"');
+					if (search === true) $('.listings-title').html('Listing Results for "'+DS.query.search+'"');
+					if (DS.address.zip !== '') $('.listings-title').html('New Listings near '+DS.address.zip);
                		$( ".druid-listings" ).find( "#more-listings" ).before(sniffed);
                 	$( ".druid-listings" ).listview( "refresh" );					
 				} else {
-				var message = 'We couldn\'t sniff out any listings with the criteria:';
+					DS.query.offset = cacheOffset;
+					var message = 'We couldn\'t sniff out any listings with the criteria:';
 					if (DS.query.search !== '') message += '<p>Keyword: <span style="color:#dd3333">'+DS.query.search+'</span></p>';
 					if (DS.address.zip !== '') message += '<p>Zip Code: <span style="color:#dd3333">'+DS.address.zip+'</span></p>';
 					if (DS.query.term !== '') message += '<p>Category: <span style="color:#dd3333">'+DS.query.term+'</span></p>';
@@ -1012,6 +1029,7 @@ var DS = {
 		});
     },
 	showEvents: function(whistle) {
+		$('.druid-event').remove();
 		whistle = whistle || DS.listen('get_events');
 		console.log(whistle);
 		DS.pauseInputs();
@@ -1022,7 +1040,7 @@ var DS = {
             success: function( response ) {
 				var sniffed = '';
         		$.each(response.posts, function(index, value) {
-					DS.events.offset += 1;
+					//DS.events.offset += 1;
 					console.log(value);	
 					//var reviews = DS.displayReview(value.rating);
 					var img = DS.displayImage(value.thumbnail_images,'custom');
@@ -1031,7 +1049,7 @@ var DS = {
 
 					
 					//sniffed += '<li class="druid-list-item ui-li-has-thumb item-'+value.type+'"><a href="#" class="ui-btn ui-btn-icon-right ui-icon-carat-r">' + img +bigdate +'<h2>'+value.title+'</h2>';
-					sniffed += '<li class="druid-list-item item-'+value.type+'">' +
+					sniffed += '<li class="druid-event druid-list-item item-'+value.type+'">' +
 			      	'<a href="#" class="ui-btn ui-btn-icon-right ui-icon-carat-r mage-list-item event-widget-item ui-btn">' + img +bigdate +
 					'<div class="event-widget-details"><h2>'+value.title+'</h2>'+startdate+'</div>';
 					//sniffed += reviews;
@@ -1039,13 +1057,13 @@ var DS = {
 					//sniffed += startdate;
 					sniffed += '</a></li>';
 				});
-				if(sniffed !== ''){
+				if(sniffed !== ''){					
                		$( ".druid-events" ).find( "#more-events" ).before(sniffed);
                 	$( ".druid-events" ).listview( "refresh" );
 				} else {
-				var message = '';
-					sniffed += '<li class="druid-list-item item-event">' +
-			      	'<div class="ui-btn ui-btn-icon-right ui-icon-carat-r mage-list-item event-widget-item ui-btn">We couldn\'t sniff out any events with the criteria.</div></li>';
+					var message = '';
+					sniffed += '<li class="druid-event druid-list-item item-event">' +
+			      	'<div class="mage-list-item event-widget-item ui-btn">We couldn\'t sniff out any events this month in '+DS.address.city+'.</div></li>';
 					$( ".druid-events" ).find( "#more-events" ).before(sniffed);
                 	$( ".druid-events" ).listview( "refresh" );
 				}
@@ -1132,17 +1150,11 @@ var DS = {
 			$( ".druid-reviews-title" ).hide();
 		}
     },
-	onDeviceReady: function() {		
-		if(DS.ready === false){
-		DS.ready = true;
-		DS.init();
-		$("#home-btn").addClass( "ui-btn-active" );
-		$( "#open-map" ).flipswitch().flipswitch('refresh');
-		DS.setSelect('#opt-category');
-		navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);
-		//pictureSource=navigator.camera.PictureSourceType;
-		//destinationType=navigator.camera.DestinationType;		
-		}
+	onDeviceReady: function() {	
+			DS.ready = true;			
+			navigator.geolocation.getCurrentPosition(DS.onSuccess, DS.onError);
+			//pictureSource=navigator.camera.PictureSourceType;
+			//destinationType=navigator.camera.DestinationType;		
 	},
 	capturePhoto: function() {
 		navigator.camera.getPicture(DS.onPhotoDataSuccess, DS.onFail, { quality: 50, allowEdit : true,
@@ -1188,18 +1200,29 @@ var DS = {
 										DS.address.city_code = 'sf';
 									} else if (DS.address.city == 'Orange County') {
 										DS.address.city_code = 'oc';
+									} else if (DS.address.city == 'San Diego') {
+										DS.address.city_code = 'sd';
 									}				
 									DS.nearby = true;
+									DS.setSelect('#opt-city',DS.address.city_code);									
+									DS.showMore(true);	
 								} else {
+									DS.setSelect('#opt-city',DS.address.city_code);
 									break;
 								}
-							}							
+							}
+							if (results[0].address_components[i].types[b] == "postal_code") {
+								DS.address.zip = results[0].address_components[i].long_name;
+								if (DS.nearby == true){
+									$('#opt-zip').val(DS.address.zip);									
+									DS.showMore(true);
+								}									
+								break;
+							}
 						}
 					}				
 				} 			
-				DS.setSelect('#opt-city',DS.address.city_code);				
-				DS.showMore();		
-				DS.showEvents();
+					
 			} else {
 				alert("Geocoder failed due to: " + status);
 			}
@@ -1242,7 +1265,7 @@ var DS = {
 		</select></form>
 	</div>
 	<div id="mage-list" role="main" class="ui-content">
-	<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" data-theme="a" />
+	<input type="search" placeholder="Sniff For" id="s" name="s" value="" data-clear-btn="true" class="onchange" data-theme="a"/>
 	<select name="opt-category" id="opt-category" data-native-menu="false" class="mage-select" data-theme="a" ><option data-placeholder="true" >Categories</option>
 		<option value="all">All Categories</option>
 		<option value="activities">Activities</option>
@@ -1253,11 +1276,11 @@ var DS = {
 		<option value="training">Training</option>
 		<option value="travel">Travel</option>
     </select>
-<h2 class="home-title">New Listings</h2><p class="subtitle">Recently Added Dog Friendly Businesses</p>
+<h2 class="listings-title home-title">New Listings</h2><p class="listings-subtitle subtitle">Recently Added Dog Friendly Businesses</p>
 	<ul class="druid-listings ui-corner-all ui-shadow" data-role="listview" data-inset="true">
 		<li id="more-listings" data-theme="b" data-icon="plus" ><a href=""><h2>More Listings Nearby</h2></a></li>
 	</ul>
-<h2 class="home-title">Upcoming Events</h2><p class="subtitle">Events for Dog Lovers and Dogs!</p>
+<h2 class="events-title home-title">Upcoming Events</h2><p class="events-subtitle subtitle">Events for Dog Lovers and Dogs!</p>
 	<ul class="druid-events ui-corner-all ui-shadow" data-role="listview" data-inset="true">
 		<li id="more-events" data-theme="b" data-icon="calendar" ><a href="calendar.html"><h2>View Calendar</h2></a></li>
 	</ul>
@@ -1299,13 +1322,18 @@ var DS = {
 		<!--li><a href="events.html">My Events</a></li-->
 		<!--li><a href="ratings.html">My Ratings</a></li-->		
 		</ul>
-		<h4>Change City</h4>
-		<select name="opt-city" id="opt-city" data-native-menu="false" class="onchange mage-select" data-theme="a">
+		<h4>Change Location</h4>
+		<select name="opt-city" id="opt-city" data-native-menu="false" class="mage-select" data-theme="a">
 			<option>Choose A City</option>
 			<option value="la">Los Angeles</option>
-			<option value="sb">Santa Barbara</option>
 			<option value="oc">Orange County</option>
+			<option value="sd">San Diego</option>
+			<option value="sf">San Francisco</option>
+			<option value="sb">Santa Barbara</option>
+			
 		</select>
+		<label for="opt-zip" class="ui-hidden-accessible">Zip Code</label>
+		<input type="text" data-clear-btn="true" name="opt-zip" id="opt-zip" value="" class="onchange" data-theme="a" placeholder="Zip Code">
 	</div>
 	<div data-role="popup" id="actions" data-theme="a">
 			<ul data-role="listview" data-inset="true" style="min-width:210px;">
@@ -1320,9 +1348,9 @@ var DS = {
 			<div class="alert alert-red login-alert" style="display:none;"></div>
 			<div class="user-block">
 			<label for="un" class="ui-hidden-accessible">Username:</label>
-			<input type="text" placeholder="Username" id="user-field" name="user-field" value="" data-theme="a">
+			<input type="text" data-clear-btn="true" placeholder="Username" id="user-field" name="user-field" value="" data-theme="a">
 			<label for="pw" class="ui-hidden-accessible">Password:</label>
-			<input type="password" placeholder="Password" id="pass-field" name="pass-field" value="" data-theme="a">
+			<input type="password" data-clear-btn="true" placeholder="Password" id="pass-field" name="pass-field" value="" data-theme="a">
 			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-login">Sign in</button>
 			</div>				
 			</form>
@@ -1330,13 +1358,13 @@ var DS = {
 			<div class="alert alert-red register-alert" style="display:none;"></div>
 			<div class="user-block">
 			<label for="user-field" class="ui-hidden-accessible">Username:</label>
-			<input type="text" class="reg-field" placeholder="Username" id="user-reg" name="user-reg" value="" data-theme="a">
+			<input type="text" data-clear-btn="true" class="reg-field" placeholder="Username" id="user-reg" name="user-reg" value="" data-theme="a">
 			<label for="user-email" class="ui-hidden-accessible">E-mail:</label>
-			<input type="email" class="reg-field" placeholder="E-mail" id="email-reg" name="email-reg" value="" data-theme="a">
+			<input type="email" data-clear-btn="true" class="reg-field" placeholder="E-mail" id="email-reg" name="email-reg" value="" data-theme="a">
 			<label for="pw" class="ui-hidden-accessible">Password:</label>
-			<input type="password" class="reg-field" placeholder="Password" id="pass-reg" name="pass-reg" value="" data-theme="a">
+			<input type="password" data-clear-btn="true" class="reg-field" placeholder="Password" id="pass-reg" name="pass-reg" value="" data-theme="a">
 			<label for="pw" class="ui-hidden-accessible">Confirm Password:</label>
-			<input type="password" class="reg-field" placeholder="Confirm Password" id="pass-confirm" name="pass-confirm" value="" data-theme="a">
+			<input type="password" data-clear-btn="true" class="reg-field" placeholder="Confirm Password" id="pass-confirm" name="pass-confirm" value="" data-theme="a">
 			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-register">Sign Up</button>
 			</div>			
 			</form>
@@ -1347,7 +1375,7 @@ var DS = {
 			<div class="user-block">
 			<label for="user-field" class="ui-hidden-accessible">Username:</label>
 			<input type="text" class="forpass-field" placeholder="Username" id="user-pass" name="user-pass" value="" data-theme="a">
-			<button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-password">Get New Password</button>
+			<button type="submit" data-clear-btn="true" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check submit-password">Get New Password</button>
 			</div>	
 			</form>		
 			<h3>Don't Have an Account? No Problem!</h3>			
@@ -1358,6 +1386,16 @@ var DS = {
 	</div>
     </body>
 	<script type="text/javascript">
-    DS.onDeviceReady();
+	if(DS.ready === false){
+		window.isphone = false;
+		if(document.URL.indexOf("http://") === -1 && document.URL.indexOf("https://") === -1) {
+			window.isphone = true;
+		}
+		if( window.isphone ) {
+			document.addEventListener("deviceready", DS.onDeviceReady, false);
+		} else {
+			DS.onDeviceReady();
+		}
+	}
 </script>
 </html>
